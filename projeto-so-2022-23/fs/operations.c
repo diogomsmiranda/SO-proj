@@ -241,11 +241,41 @@ int tfs_unlink(char const *target) {
     PANIC("TODO: tfs_unlink");
 }
 
-int tfs_copy_from_external_fs(char const *source_path, char const *dest_path) {
-    (void)source_path;
-    (void)dest_path;
-    // ^ this is a trick to keep the compiler from complaining about unused
-    // variables. TODO: remove
+/*
+    This function copies the content of a source_path file existing in the file system of the operating system on which TecnicoFs runs,
+to the destPath file saved in TecnicoFS. In other words,
+it imports the contents of a file from the native file system into TecnicoFS (limited to 1 block size).
+    Returns 0 on success, -1 on error.
+    If the file identified by dest_path does not exist, it must be created. 
+Otherwise, the previous content of the already existing file must be completely replaced by the new content.*/
 
-    PANIC("TODO: tfs_copy_from_external_fs");
+int tfs_copy_from_external_fs(char const *source_path, char const *dest_path) {
+    
+    FILE* source = fopen(source_path, "r");
+    
+    FILE* dest = fopen(dest_path, "w");
+
+    if (source == NULL || dest == NULL) { return -1; }
+
+    fseek(source, 0L, SEEK_END);    // move file pointer until end of file
+    int size = ftell(source);       // gets size of file
+
+    char buffer[size];              // creates buffer with size of file
+    memset(buffer,0,size);          // clears memory (not needed since everything
+                                    // is getting overwritten) with standard x size
+			                        // needs because file length is unknown.
+
+    /* read the contents of the file */
+    rewind(source);                  // bring file pointer to the beggining so it 
+			                        // can be read, (moved in fseek())
+    int bytes_read = fread(buffer, sizeof(char), size, source);
+    if (bytes_read < 0) { return -1; }
+   
+    int bytes_written = fwrite(buffer, sizeof(char) ,strlen(buffer), dest);
+    if (bytes_written < 0) { return -1; }
+
+    fclose(source);
+    fclose(dest);
+
+    return 0;
 }
