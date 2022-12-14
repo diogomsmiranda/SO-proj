@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
 
 #include "betterassert.h"
 
@@ -253,12 +254,12 @@ int tfs_copy_from_external_fs(char const *source_path, char const *dest_path) {
     
     FILE* source = fopen(source_path, "r");
     
-    FILE* dest = fopen(dest_path, "w");
-
-    if (source == NULL || dest == NULL) { return -1; }
+    int dest = tfs_open(dest_path, TFS_O_CREAT | TFS_O_TRUNC | TFS_O_APPEND);
+    
+    if (source == NULL || dest == -1) { return -1; }
 
     fseek(source, 0L, SEEK_END);    // move file pointer until end of file
-    int size = ftell(source);       // gets size of file
+    unsigned long size = (unsigned long)ftell(source);      // gets size of file
 
     char buffer[size];              // creates buffer with size of file
     memset(buffer,0,size);          // clears memory (not needed since everything
@@ -268,14 +269,14 @@ int tfs_copy_from_external_fs(char const *source_path, char const *dest_path) {
     /* read the contents of the file */
     rewind(source);                  // bring file pointer to the beggining so it 
 			                        // can be read, (moved in fseek())
-    int bytes_read = fread(buffer, sizeof(char), size, source);
+    unsigned long bytes_read = fread(buffer, 1, size, source);
     if (bytes_read < 0) { return -1; }
    
-    int bytes_written = fwrite(buffer, sizeof(char) ,strlen(buffer), dest);
+    long bytes_written = tfs_write(dest, buffer, size);
     if (bytes_written < 0) { return -1; }
 
     fclose(source);
-    fclose(dest);
+    tfs_close(dest);
 
     return 0;
 }
