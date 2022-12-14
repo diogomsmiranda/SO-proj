@@ -134,12 +134,26 @@ int tfs_open(char const *name, tfs_file_mode_t mode) {
 }
 
 int tfs_sym_link(char const *target, char const *link_name) {
-    (void)target;
-    (void)link_name;
-    // ^ this is a trick to keep the compiler from complaining about unused
-    // variables. TODO: remove
+    
+    // creates a new inode on the inode_table
+    int number = inode_create(T_FILE);
+    
+    //check for errors
+    if (number == -1) {
+        return -1;
+    }
 
-    PANIC("TODO: tfs_sym_link");
+    // gets the inode that was just created
+    inode_t *inode = inode_get(number);
+
+    //point the data_block of the inode to the fhandle of the absolute path of the link created
+    inode->i_data_block = tfs_open(target, TFS_O_TRUNC);
+
+    // create the file where the link will be created
+    int fhandle = tfs_open(link_name, TFS_O_CREAT);
+    
+
+    return 0;
 }
 
 int tfs_link(char const *target, char const *link_name) {
@@ -242,20 +256,12 @@ int tfs_unlink(char const *target) {
     PANIC("TODO: tfs_unlink");
 }
 
-/*
-    This function copies the content of a source_path file existing in the file system of the operating system on which TecnicoFs runs,
-to the destPath file saved in TecnicoFS. In other words,
-it imports the contents of a file from the native file system into TecnicoFS (limited to 1 block size).
-    Returns 0 on success, -1 on error.
-    If the file identified by dest_path does not exist, it must be created. 
-Otherwise, the previous content of the already existing file must be completely replaced by the new content.*/
-
 int tfs_copy_from_external_fs(char const *source_path, char const *dest_path) {
     
     FILE* source = fopen(source_path, "r");
     
     int dest = tfs_open(dest_path, TFS_O_CREAT | TFS_O_TRUNC | TFS_O_APPEND);
-    
+
     if (source == NULL || dest == -1) { return -1; }
 
     fseek(source, 0L, SEEK_END);    // move file pointer until end of file
