@@ -1,0 +1,10 @@
+Functions created to test added commands
+
+1. tfs_copy_from_external_fs:
+	-> copy_from_external_huge:
+	   Copies from "file_to_copy_over1024.txt", a file with over 1024chars, 
+	   TecnicoFS char limit per file is 1024chars, entry in the TecnicoFS
+	   file system should copy the first 1024chars from the given file.
+
+2. 
+	   

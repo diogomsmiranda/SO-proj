@@ -26,7 +26,6 @@ typedef struct {
     inode_type i_node_type;
 
     int i_links;
-
     size_t i_size;
     int i_data_block;
 
