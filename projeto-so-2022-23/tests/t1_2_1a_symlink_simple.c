@@ -55,6 +55,8 @@ int main() {
     }
 
     assert(tfs_sym_link(target_path1, link_path1) != -1);
+
+
     assert_empty_file(link_path1);
 
     write_contents(link_path1);

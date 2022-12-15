@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
+#include <sys/types.h>
 
 #include "betterassert.h"
 
@@ -92,6 +93,11 @@ int tfs_open(char const *name, tfs_file_mode_t mode) {
         ALWAYS_ASSERT(inode != NULL,
                       "tfs_open: directory files must have an inode");
 
+        if(inode->i_node_type == T_SYMLINK) {
+            char *data = data_block_get(inode->i_data_block);
+            return tfs_open(data, mode); 
+        }
+
         // Truncate (if requested)
         if (mode & TFS_O_TRUNC) {
             if (inode->i_size > 0) {
@@ -134,55 +140,103 @@ int tfs_open(char const *name, tfs_file_mode_t mode) {
 }
 
 int tfs_sym_link(char const *target, char const *link_name) {
-    // inode of root
+    // get the inode from the directory
     inode_t *root_dir_inode = inode_get(ROOT_DIR_INUM);
     ALWAYS_ASSERT(root_dir_inode != NULL,
                   "tfs_sym_link: root dir inode must exist");
-    
-    // create inode
-    int inum = inode_create(T_FILE);
+
+    //if type of target's inode is T_DIRECTORY then return -1
+    int tnum = tfs_lookup(target, root_dir_inode);
+    if (tnum >= 0) {
+        inode_t *inode = inode_get(tnum);
+        ALWAYS_ASSERT(inode != NULL,
+                      "tfs_sym_link: directory files must have an inode");
+        if(inode->i_node_type == T_DIRECTORY) {
+            return -1;
+        }
+    } else { return -1; }
+
+    //create a new inode for the symlink
+    int inum = inode_create(T_SYMLINK);
     if (inum == -1) { return -1; }
 
-    inode_t* sym_inode = inode_get(inum);
-    if (sym_inode == NULL) { return -1; }
+    inode_t *inode = inode_get(inum);
+    ALWAYS_ASSERT(inode != NULL,
+                  "tfs_sym_link: directory files must have an inode");
 
-    inode_t* target_inode = inode_get(tfs_lookup(target, root_dir_inode));
-    if (target_inode == NULL) { return -1; }
+    inode->i_size = strlen(target);
+    inode->i_data_block = data_block_alloc();
+    if (inode->i_data_block == -1) {
+        inode_delete(inum);
+        return -1;
+    }
 
-    printf("symlink %d\n", (int)target_inode->i_size);
-    sym_inode->i_size = target_inode->i_size;
+    //write the path of target in the data block
+    char *data = data_block_get(inode->i_data_block);
+    strcpy(data, target);
 
-    //point the inode to the target file
-    sym_inode->i_data_block = tfs_lookup(target, root_dir_inode);
-
-    add_dir_entry(root_dir_inode, link_name + 1, inum);
-
-    return 0;
+    // add entry in the root directory
+    return add_dir_entry(root_dir_inode, link_name + 1, inum);
 }
 
 int tfs_link(char const *target, char const *link_name) {
             // get the inode
     inode_t *root_dir_inode = inode_get(ROOT_DIR_INUM);
-    ALWAYS_ASSERT(root_dir_inode != NULL,
-                  "tfs_link: root dir inode must exist");
+    ALWAYS_ASSERT(root_dir_inode != NULL, "tfs_link: root dir inode must exist");
 
+    // get the inode of the target
+    int inum = tfs_lookup(target, root_dir_inode);
+    inode_t *inode = inode_get(inum);
+    ALWAYS_ASSERT(inode != NULL, "tfs_link: directory files must have an inode");
 
-    add_dir_entry(root_dir_inode, link_name + 1, tfs_lookup(target, root_dir_inode));
+    //check if inode type is T_SYMLINK
+    if(inode->i_node_type == T_SYMLINK) { return -1; }
 
-    return 0;
+    // increment the link count
+    inode->i_links++;
+
+    // already returns 0 if successfull, -1 otherwise
+    return add_dir_entry(root_dir_inode, link_name + 1, tfs_lookup(target, root_dir_inode));
 }
 
 // function that allows user to delete a file or a link
 int tfs_unlink(char const *target) {
 
     inode_t *root_dir_inode = inode_get(ROOT_DIR_INUM);
-    ALWAYS_ASSERT(root_dir_inode != NULL,
-                  "tfs_unlink: root dir inode must exist");
+    ALWAYS_ASSERT(root_dir_inode != NULL, "tfs_unlink: root dir inode must exist");
 
-    clear_dir_entry(root_dir_inode, target + 1);
+    //get the inode of the target
+    int inum = tfs_lookup(target, root_dir_inode);
+    inode_t *inode_to_unlink = inode_get(inum);
+    ALWAYS_ASSERT(inode_to_unlink != NULL, "tfs_unlink: directory files must have an inode");
 
-    return 0;
+    switch(inode_to_unlink->i_node_type) {
 
+        // symlink
+        case(T_SYMLINK):
+            inode_delete(inum);
+            break;
+
+        // hardlink
+        case(T_FILE):
+            // check if number of hardlinks reached 0
+            if(inode_to_unlink->i_links<=1) {
+                inode_delete(inum);
+            }
+            else {
+                // removes 1 hardlink
+                inode_to_unlink->i_links--;
+            }
+            break;
+        
+        // trying to unlink something that is not a link
+        case(T_DIRECTORY):
+            return -1;
+            break;
+    }
+
+    // already returns 0 if successfull, -1 otherwise
+    return clear_dir_entry(root_dir_inode, target + 1);
 }
 
 int tfs_close(int fhandle) {
@@ -248,11 +302,9 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
     // From the open file table entry, we get the inode
     inode_t const *inode = inode_get(file->of_inumber);
     ALWAYS_ASSERT(inode != NULL, "tfs_read: inode of open file deleted");
-
-
-    printf(" read %d\n", (int)inode->i_size);
-    // Determine how many bytes to read
+    
     size_t to_read = inode->i_size - file->of_offset;
+
     if (to_read > len) {
         to_read = len;
     }
