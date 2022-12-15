@@ -158,17 +158,30 @@ int tfs_link_counter(char const *name) {
 }
 
 int tfs_sym_link(char const *target, char const *link_name) {
+
+    // if creating a symbolic link to a symbolic link: new_target = target of original symbolic link
+    // else: new_target = target
+    char new_target[MAX_FILE_NAME];
+    strcpy(new_target, target);
+
     // get the inode from the directory
     inode_t *root_dir_inode = inode_get(ROOT_DIR_INUM);
-    ALWAYS_ASSERT(root_dir_inode != NULL,
-                  "tfs_sym_link: root dir inode must exist");
+    ALWAYS_ASSERT(root_dir_inode != NULL, "tfs_sym_link: root dir inode must exist");
 
     //if type of target's inode is T_DIRECTORY then return -1
     int tnum = tfs_lookup(target, root_dir_inode);
     if (tnum >= 0) {
         inode_t *inode = inode_get(tnum);
-        ALWAYS_ASSERT(inode != NULL,
-                      "tfs_sym_link: directory files must have an inode");
+        ALWAYS_ASSERT(inode != NULL, "tfs_sym_link: directory files must have an inode");
+
+        // creating a symbolic link to a symbolic link
+        // creates a separated symbolic link to the file associated with the first symbolic link
+        if(inode->i_node_type==2) {
+            // file stored in symbolic link
+            char *data = data_block_get(inode->i_data_block);
+            strcpy(new_target, data);
+        }
+        
         if(inode->i_node_type == T_DIRECTORY) {
             return -1;
         }
@@ -179,10 +192,9 @@ int tfs_sym_link(char const *target, char const *link_name) {
     if (inum == -1) { return -1; }
 
     inode_t *inode = inode_get(inum);
-    ALWAYS_ASSERT(inode != NULL,
-                  "tfs_sym_link: directory files must have an inode");
+    ALWAYS_ASSERT(inode != NULL, "tfs_sym_link: directory files must have an inode");
 
-    inode->i_size = strlen(target);
+    inode->i_size = strlen(new_target);
     inode->i_data_block = data_block_alloc();
     if (inode->i_data_block == -1) {
         inode_delete(inum);
@@ -191,7 +203,7 @@ int tfs_sym_link(char const *target, char const *link_name) {
 
     //write the path of target in the data block
     char *data = data_block_get(inode->i_data_block);
-    strcpy(data, target);
+    strcpy(data, new_target);
 
     // add entry in the root directory
     return add_dir_entry(root_dir_inode, link_name + 1, inum);

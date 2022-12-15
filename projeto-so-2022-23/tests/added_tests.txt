@@ -6,5 +6,22 @@ Functions created to test added commands
 	   TecnicoFS char limit per file is 1024chars, entry in the TecnicoFS
 	   file system should copy the first 1024chars from the given file.
 
-2. 
+
+2.a) tfs_link_counter & tfs_unlink:
+	-> t1_2_9_hard_link_counter:
+	   Counts evolution of hardlinks to a given file:
+		-> file is created (1 hardlink).
+		-> hardlink to file is created (+1 hardlink = 2 hardlinks).
+		-> unlink created hardlink (-1 hardlink = 1 hardlink).
+		-> unlink created file (-1 hardlink = 0 hardlinks).
+	
+2.b) tfs_sym_link:
+	-> t1_2_10_symlink_to_symlink:
+	   Creates a symbolic link to a symbolic link, new symbolic link points 
+	   to the file pointed by the old symbolic link, both symbolic link co-exist. 
+	   Verifies that it can edit the file from the new symbolic link.
+
+
+3. to be created.
+
 	   
