@@ -18,7 +18,7 @@ Functions created to test added commands
 2.b) tfs_sym_link:
 	-> t1_2_10_symlink_to_symlink:
 	   Creates a symbolic link to a symbolic link, new symbolic link points 
-	   to the file pointed by the old symbolic link, both symbolic link co-exist. 
+	   to the file pointed by the old symbolic link, both symbolic links co-exist. 
 	   Verifies that it can edit the file from the new symbolic link.
 
 
