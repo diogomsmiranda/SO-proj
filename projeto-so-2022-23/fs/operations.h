@@ -56,6 +56,16 @@ typedef enum {
 int tfs_open(char const *name, tfs_file_mode_t mode);
 
 /**
+ * Gets number of hard links to file.
+ * 
+ * Input:
+ *   - name: absolute path name
+ * 
+ * Return number of hard links to "name" file
+ */
+int tfs_link_counter(char const *name);
+
+/**
  * Create a symbolic link to a file.
  *
  * Input:
