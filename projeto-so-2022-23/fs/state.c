@@ -227,9 +227,9 @@ int inode_create(inode_type i_type) {
     // Lock the inode from write and read
 
     inode->i_node_type = i_type;
-    pthread_rwlock_init(inode->i_lock, NULL);
+    pthread_rwlock_init(&inode->i_lock, NULL);
 
-    pthread_rwlock_wrlock(inode->i_lock);
+    pthread_rwlock_wrlock(&inode->i_lock);
 
     switch (i_type) {
     case T_DIRECTORY: {
@@ -279,7 +279,7 @@ int inode_create(inode_type i_type) {
     pthread_rwlock_unlock(&inode_table_lock);
 
     // Unlock the inode from write and read
-    pthread_rwlock_unlock(inode->i_lock);
+    pthread_rwlock_unlock(&inode->i_lock);
 
     return inumber;
 }
@@ -346,7 +346,7 @@ inode_t *inode_get(int inumber) {
 int clear_dir_entry(inode_t *inode, char const *sub_name) {
 
     // Lock the inode from read
-    pthread_rwlock_rdlock(inode->i_lock);
+    pthread_rwlock_rdlock(&inode->i_lock);
 
     insert_delay();
 
@@ -370,7 +370,7 @@ int clear_dir_entry(inode_t *inode, char const *sub_name) {
             pthread_rwlock_unlock(&data_blocks_lock);
 
             // Unlock the inode from read
-            pthread_rwlock_unlock(inode->i_lock);
+            pthread_rwlock_unlock(&inode->i_lock);
 
             return 0;
         }
@@ -378,7 +378,7 @@ int clear_dir_entry(inode_t *inode, char const *sub_name) {
     pthread_rwlock_unlock(&data_blocks_lock);
     
     // Unlock the inode from read
-    pthread_rwlock_unlock(inode->i_lock);
+    pthread_rwlock_unlock(&inode->i_lock);
 
     return -1; // sub_name not found
 }
@@ -404,7 +404,7 @@ int add_dir_entry(inode_t *inode, char const *sub_name, int sub_inumber) {
     }
     
     // Lock the inode from read
-    pthread_rwlock_rdlock(inode->i_lock);
+    pthread_rwlock_rdlock(&inode->i_lock);
 
     insert_delay(); // simulate storage access delay to inode with inumber
     if (inode->i_node_type != T_DIRECTORY) {
@@ -428,7 +428,7 @@ int add_dir_entry(inode_t *inode, char const *sub_name, int sub_inumber) {
 
             // Unlock
             pthread_rwlock_unlock(&data_blocks_lock);
-            pthread_rwlock_unlock(inode->i_lock);
+            pthread_rwlock_unlock(&inode->i_lock);
 
             return 0;
         }
@@ -436,7 +436,7 @@ int add_dir_entry(inode_t *inode, char const *sub_name, int sub_inumber) {
 
     // Unlock
     pthread_rwlock_unlock(&data_blocks_lock);
-    pthread_rwlock_unlock(inode->i_lock);
+    pthread_rwlock_unlock(&inode->i_lock);
 
     return -1; // no space for entry
 }
@@ -454,12 +454,12 @@ int add_dir_entry(inode_t *inode, char const *sub_name, int sub_inumber) {
  *   - inode is not a directory inode.
  *   - Directory does not contain a file named sub_name.
  */
-int find_in_dir(inode_t const *inode, char const *sub_name) {
+int find_in_dir(inode_t *inode, char const *sub_name) {
     ALWAYS_ASSERT(inode != NULL, "find_in_dir: inode must be non-NULL");
     ALWAYS_ASSERT(sub_name != NULL, "find_in_dir: sub_name must be non-NULL");
 
     // Lock the inode from read
-    pthread_rwlock_rdlock(inode->i_lock);
+    pthread_rwlock_rdlock(&inode->i_lock);
 
     insert_delay(); // simulate storage access delay to inode with inumber
     if (inode->i_node_type != T_DIRECTORY) {
@@ -483,7 +483,7 @@ int find_in_dir(inode_t const *inode, char const *sub_name) {
             int sub_inumber = dir_entry[i].d_inumber;
 
             // Unlock
-            pthread_rwlock_unlock(inode->i_lock);
+            pthread_rwlock_unlock(&inode->i_lock);
             pthread_rwlock_unlock(&data_blocks_lock);
 
 
@@ -491,7 +491,7 @@ int find_in_dir(inode_t const *inode, char const *sub_name) {
         }
 
     // Unlock 
-    pthread_rwlock_unlock(inode->i_lock);
+    pthread_rwlock_unlock(&inode->i_lock);
     pthread_rwlock_unlock(&data_blocks_lock);
 
     return -1; // entry not found
