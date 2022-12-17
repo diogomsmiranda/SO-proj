@@ -113,6 +113,10 @@ int state_init(tfs_params params) {
     open_file_table = malloc(MAX_OPEN_FILES * sizeof(open_file_entry_t));
     free_open_file_entries =
         malloc(MAX_OPEN_FILES * sizeof(allocation_state_t));
+    
+    //init the rwlock
+    pthread_rwlock_init(&inode_table_lock, NULL);
+    pthread_rwlock_init(&data_blocks_lock, NULL);
 
     if (!inode_table || !freeinode_ts || !fs_data || !free_blocks ||
         !open_file_table || !free_open_file_entries) {
