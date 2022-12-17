@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <pthread.h>
 
 /**
  * Directory entry
@@ -27,6 +28,8 @@ typedef struct {
 
     int i_links;
 
+    pthread_rwlock_t* i_lock;
+
     size_t i_size;
     int i_data_block;
 
@@ -42,6 +45,11 @@ typedef struct {
     int of_inumber;
     size_t of_offset;
 } open_file_entry_t;
+
+// extern the locker for the inode_table
+extern pthread_rwlock_t inode_table_lock;
+//extern the locker for the data_blocks
+extern pthread_rwlock_t data_blocks_lock;
 
 int state_init(tfs_params);
 int state_destroy(void);

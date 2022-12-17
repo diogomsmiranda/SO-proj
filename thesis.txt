@@ -1,0 +1,85 @@
+How do you make a file-system thread-safe?
+There are a few different approaches you can take to make a file system thread-safe:
+
+Use locks: One option is to use locks (such as mutexes) to synchronize access to shared resources. For example, you could use a mutex to protect access to a file that multiple threads are trying to read or write to.
+Use atomic operations: Another option is to use atomic operations to update shared variables. Atomic operations are low-level operations that are guaranteed to be executed without interference from other threads.
+Use message passing: Another option is to use message passing to communicate between threads. In this approach, threads communicate with each other using messages, rather than directly accessing shared resources.
+Use a thread-safe library: Finally, you can use a thread-safe library to handle synchronization for you. For example, the C++ standard library includes several thread-safe containers, such as std::vector and std::map, that can be used to store data in a thread-safe manner.
+It's worth noting that making a file system thread-safe can be a complex task, and it's important to carefully design and test your implementation to ensure that it works correctly.
+
+
+
+Diogo Miranda
+Noting that my file-system work properly if I would want to use locks to synchronise access how in what function would I need to put them (the mutexes)?
+If you want to use locks (such as mutexes) to synchronize access to shared resources in a file system, you would typically need to use them in any function that accesses or modifies shared data.
+
+For example, if you have a function that reads a file from the file system, you would need to use a mutex to synchronize access to the file while it is being read. This would ensure that only one thread can read the file at a time, preventing race conditions and other synchronization issues.
+
+Similarly, if you have a function that writes to a file in the file system, you would need to use a mutex to synchronize access to the file while it is being written to. This would ensure that only one thread can write to the file at a time, again preventing race conditions and other synchronization issues.
+
+It's worth noting that you may need to use multiple mutexes to synchronize access to different resources in the file system. For example, you might need to use one mutex to synchronize access to a file, and another mutex to synchronize access to a directory.
+
+Finally, it's important to be careful when using mutexes, as they can cause performance issues if used excessively or improperly. It's generally a good idea to minimize the use of mutexes, and to release them as soon as possible after they are no longer needed.
+
+
+
+Diogo Miranda
+would I need to use the mutex lock in my tfs_open() function?
+It's possible that you might need to use a mutex (or some other form of synchronization) in your tfs_open() function, depending on how your file system is designed and how you want to handle concurrent access to files.
+
+Here are a few scenarios where you might need to use a mutex in tfs_open():
+
+If your tfs_open() function reads or modifies shared data structures (such as a global file table), you will need to use a mutex to synchronize access to these data structures. This will prevent race conditions and other synchronization issues.
+If your tfs_open() function calls other functions that access or modify shared data structures, you will need to use a mutex to synchronize access to these data structures. This will ensure that these functions are executed atomically, without interference from other threads.
+If your tfs_open() function reads or writes to a file on disk, you will need to use a mutex to synchronize access to the file. This will prevent multiple threads from reading or writing to the file simultaneously, which could cause corruption or other issues.
+Again, it's important to be careful when using mutexes, as they can cause performance issues if used excessively or improperly. It's generally a good idea to minimize the use of mutexes, and to release them as soon as possible after they are no longer needed.
+
+
+
+Diogo Miranda
+Don't I need a third mutex lock for every function that my read or modify data in the inode table?
+For now I have a mutex for directories and files.
+It's possible that you might need to use additional mutexes (or some other form of synchronization) to protect access to the inode table in your file system. This would depend on how your file system is designed and how you want to handle concurrent access to the inode table.
+
+Here are a few scenarios where you might need to use a mutex to protect the inode table:
+
+If your file system has a global inode table that is shared by multiple threads, you will need to use a mutex to synchronize access to the inode table. This will prevent race conditions and other synchronization issues.
+If your file system has a per-file inode table, and multiple threads need to access or modify the inode table for a given file, you will need to use a mutex to synchronize access to the inode table for that file. This will ensure that the inode table is updated atomically, without interference from other threads.
+If your file system has a per-directory inode table, and multiple threads need to access or modify the inode table for a given directory, you will need to use a mutex to synchronize access to the inode table for that directory. This will ensure that the inode table is updated atomically, without interference from other threads.
+Again, it's important to be careful when using mutexes, as they can cause performance issues if used excessively or improperly. It's generally a good idea to minimize the use of mutexes, and to release them as soon as possible after they are no longer needed.
+
+
+
+Diogo Miranda
+Noting that I have a global inode table that is shared by multiple threads wouldn't it make the other 2 lockers nested inside this big one since every time I need to access a file I need to access the inode table first? and if so wouldn't that make the 2 lockers useless?
+It is generally a good idea to use a single mutex to synchronize access to a global resource, such as a global inode table, rather than using multiple nested mutexes. This can help avoid deadlock and other synchronization issues, as well as reduce the overhead of acquiring and releasing multiple mutexes.
+
+If you have a global inode table that is shared by multiple threads, you can use a single mutex to synchronize access to the inode table. Then, whenever you need to access or modify the inode table, you can acquire the mutex, perform the necessary operations, and then release the mutex.
+
+In this case, you would not need to use additional mutexes (such as per-file or per-directory mutexes) to synchronize access to the inode table, as the global mutex would already provide the necessary synchronization.
+
+However, it's worth noting that using a single mutex to synchronize access to a global resource can result in reduced concurrency, as only one thread can acquire the mutex at a time. In some cases, it may be worth considering alternative synchronization techniques, such as using atomic operations or message passing, to allow for greater concurrency.
+
+
+
+Diogo Miranda
+Since It's penalising to use 1 mutex locker for the inode_table since im blocking all the file system's structure can I instead use read-write lockers instead to go around this issue?
+Using read-write locks (also known as shared-exclusive locks) can be a good way to allow multiple threads to concurrently access a shared resource, such as an inode table, while still providing protection against race conditions and other synchronization issues.
+
+With read-write locks, multiple threads can simultaneously acquire read locks on the resource, allowing them to read from the resource concurrently. However, when a thread needs to modify the resource, it must first acquire an exclusive (write) lock on the resource. This prevents multiple threads from concurrently modifying the resource, which can cause corruption or other issues.
+
+Using read-write locks can be a good alternative to using a single mutex to synchronize access to a shared resource, as it allows for greater concurrency by allowing multiple threads to simultaneously read from the resource. However, it's worth noting that read-write locks can be more complex to implement and can have higher overhead than mutexes, so it's important to carefully consider whether they are the best option for your use case.
+
+
+
+Diogo Miranda
+In the case I decide to use them wouldn't there be a data race error every time I read an inode from the inode table?
+A data race occurs when two or more threads access the same shared memory location concurrently, and at least one of the threads is writing to that location. If the threads are not properly synchronized, the resulting behavior can be undefined and can lead to issues such as corruption of data or incorrect program behavior.
+
+If you use read-write locks to synchronize access to an inode table, you can avoid data races by ensuring that the locks are properly acquired and released. Specifically:
+
+When a thread needs to read an inode from the inode table, it should first acquire a read lock on the inode table. This will prevent other threads from modifying the inode table while the thread is reading from it.
+When a thread has finished reading from the inode table, it should release the read lock. This will allow other threads to acquire read locks on the inode table, allowing them to concurrently read from the table.
+When a thread needs to modify an inode in the inode table, it should first acquire an exclusive (write) lock on the inode table. This will prevent other threads from accessing the inode table while the thread is modifying it.
+When a thread has finished modifying the inode table, it should release the write lock. This will allow other threads to acquire read or write locks on the inode table, as needed.
+By following these steps, you can ensure that the read-write locks are properly acquired and released, preventing data races and other synchronization issues.
