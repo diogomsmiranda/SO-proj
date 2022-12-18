@@ -220,9 +220,6 @@ static int inode_alloc(void) {
  */
 int inode_create(inode_type i_type) {
 
-    // Lock the inode table
-    pthread_rwlock_wrlock(&inode_table_lock);
-
     int inumber = inode_alloc();
     if (inumber == -1) {
         return -1; // no free slots in inode table
@@ -249,8 +246,6 @@ int inode_create(inode_type i_type) {
             inode->i_data_block = -1;
             inode->i_links = 1;
 
-            // Unlock
-            pthread_rwlock_unlock(&inode_table_lock);
             pthread_rwlock_unlock(&inode->i_lock);
 
             // run regular deletion process
@@ -273,6 +268,9 @@ int inode_create(inode_type i_type) {
         }
     } break;
     case T_FILE:
+        // Lock the inode table
+        pthread_rwlock_wrlock(&inode_table_lock);
+
         // In case of a new file, simply sets its size to 0
         inode_table[inumber].i_size = 0;
         inode_table[inumber].i_data_block = -1;
