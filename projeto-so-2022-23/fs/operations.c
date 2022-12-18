@@ -109,8 +109,8 @@ int tfs_open(char const *name, tfs_file_mode_t mode) {
 
         if(inode->i_node_type == T_SYMLINK) {
             //unlock the inode
-            pthread_rwlock_unlock(&inode->i_lock);
             char *data = data_block_get(inode->i_data_block);
+            pthread_rwlock_unlock(&inode->i_lock);
             return tfs_open(data, mode); 
         }
 
@@ -438,7 +438,7 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
 
     // Unlock the inode
     pthread_rwlock_unlock(&inode->i_lock);
-    
+
     return (ssize_t)to_read;
 }
 
@@ -471,4 +471,16 @@ int tfs_copy_from_external_fs(char const *source_path, char const *dest_path) {
     tfs_close(dest);
 
     return 0;
+}
+
+
+//function just to test
+int counter(char const *name) {
+    // get the root inode
+    inode_t *root_dir_inode = inode_get(ROOT_DIR_INUM);
+    // get the inode of the file
+    int inum = tfs_lookup(name, root_dir_inode);
+    // get the inode
+    inode_t *inode = inode_get(inum);
+    return inode->i_links;
 }

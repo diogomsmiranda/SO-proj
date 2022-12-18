@@ -147,4 +147,6 @@ int tfs_unlink(char const *target);
  */
 int tfs_copy_from_external_fs(char const *source_path, char const *dest_path);
 
+int counter(char const *name);
+
 #endif // OPERATIONS_H
