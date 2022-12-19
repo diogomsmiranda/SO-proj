@@ -242,6 +242,7 @@ int inode_create(inode_type i_type) {
     // Init the lock with the same index as the inode
     pthread_rwlock_init(&inode_locks[inumber], NULL);
     // lock
+    pthread_rwlock_wrlock(&inode_table_lock);
     pthread_rwlock_wrlock(&inode_locks[inumber]);
 
     inode->i_node_type = i_type;
@@ -279,8 +280,6 @@ int inode_create(inode_type i_type) {
         }
     } break;
     case T_FILE:
-        // Lock the inode table
-        pthread_rwlock_wrlock(&inode_table_lock);
 
         // In case of a new file, simply sets its size to 0
         inode_table[inumber].i_size = 0;
