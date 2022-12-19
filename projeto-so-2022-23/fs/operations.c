@@ -302,7 +302,7 @@ int tfs_unlink(char const *target) {
     inode_t *inode_to_unlink = inode_get(inum);
 
     // Lock the inode
-    pthread_rwlock_wrlock(&inode_to_unlink->i_lock);
+    pthread_rwlock_wrlock(&inode_locks[inum]);
     ALWAYS_ASSERT(inode_to_unlink != NULL, "tfs_unlink: directory files must have an inode");
 
     switch(inode_to_unlink->i_node_type) {
@@ -327,7 +327,7 @@ int tfs_unlink(char const *target) {
         // trying to unlink something that is not a link
         case(T_DIRECTORY):
             //unlock the inode
-            pthread_rwlock_unlock(&inode_to_unlink->i_lock);
+            pthread_rwlock_unlock(&inode_locks[inum]);
             return -1;
             break;
 
@@ -336,7 +336,7 @@ int tfs_unlink(char const *target) {
     }
 
     // Unlock the inode
-    pthread_rwlock_unlock(&inode_to_unlink->i_lock);
+    pthread_rwlock_unlock(&inode_locks[inum]);
 
     // already returns 0 if successfull, -1 otherwise
     return clear_dir_entry(root_dir_inode, target + 1);
@@ -416,7 +416,7 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
     // From the open file table entry, we get the inode
     inode_t *inode = inode_get(file->of_inumber);
     // Lock the inode
-    pthread_rwlock_rdlock(&inode_locks[file->of_inumber]]);
+    pthread_rwlock_rdlock(&inode_locks[file->of_inumber]);
     ALWAYS_ASSERT(inode != NULL, "tfs_read: inode of open file deleted");
     
     size_t to_read = inode->i_size - file->of_offset;
