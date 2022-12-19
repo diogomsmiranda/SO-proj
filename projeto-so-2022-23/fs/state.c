@@ -12,7 +12,7 @@
 pthread_rwlock_t inode_table_lock;
 
 // Lock for the data blocks
-pthread_rwlock_t data_blocks_lock;
+
 
 // Lock for the file table
 pthread_rwlock_t file_table_lock;
@@ -122,7 +122,7 @@ int state_init(tfs_params params) {
     
     //init the rwlock
     pthread_rwlock_init(&inode_table_lock, NULL);
-    pthread_rwlock_init(&data_blocks_lock, NULL);
+    
     pthread_rwlock_init(&file_table_lock, NULL);
 
     if (!inode_table || !freeinode_ts || !fs_data || !free_blocks ||
@@ -161,7 +161,7 @@ int state_destroy(void) {
 
     // Destroy the locks
     pthread_rwlock_destroy(&inode_table_lock);
-    pthread_rwlock_destroy(&data_blocks_lock);
+    
     pthread_rwlock_destroy(&file_table_lock);
 
     inode_table = NULL;
@@ -268,7 +268,7 @@ int inode_create(inode_type i_type) {
         inode_table[inumber].i_data_block = b;
 
         // lock the data block table
-        pthread_rwlock_wrlock(&data_blocks_lock);
+        
 
         dir_entry_t *dir_entry = (dir_entry_t *)data_block_get(b);
         ALWAYS_ASSERT(dir_entry != NULL,
@@ -300,7 +300,7 @@ int inode_create(inode_type i_type) {
     // Unlock
     pthread_rwlock_unlock(&inode_table_lock);
     pthread_rwlock_unlock(&inode_locks[inumber]);
-    pthread_rwlock_unlock(&data_blocks_lock);
+    
 
     return inumber;
 }
@@ -371,7 +371,7 @@ int clear_dir_entry(inode_t *inode, char const *sub_name) {
     }
 
     // Lock the data block table
-    pthread_rwlock_wrlock(&data_blocks_lock);
+    
 
     // Locates the block containing the entries of the directory
     dir_entry_t *dir_entry = (dir_entry_t *)data_block_get(inode->i_data_block);
@@ -386,13 +386,13 @@ int clear_dir_entry(inode_t *inode, char const *sub_name) {
             memset(dir_entry[i].d_name, 0, MAX_FILE_NAME);
 
             //unlock the data block table
-            pthread_rwlock_unlock(&data_blocks_lock);
+            
             return 0;
         }
     }
     
     //unlock the data block table
-    pthread_rwlock_unlock(&data_blocks_lock);
+    
 
     return -1; // sub_name not found
 }
@@ -425,7 +425,7 @@ int add_dir_entry(inode_t *inode, char const *sub_name, int sub_inumber) {
     }
 
     // Lock the data_block from write and read
-    pthread_rwlock_wrlock(&data_blocks_lock);
+    
 
     // Locates the block containing the entries of the directory
     dir_entry_t *dir_entry = (dir_entry_t *)data_block_get(inode->i_data_block);
@@ -440,13 +440,13 @@ int add_dir_entry(inode_t *inode, char const *sub_name, int sub_inumber) {
             dir_entry[i].d_name[MAX_FILE_NAME - 1] = '\0';
 
             // Unlock the data block table
-            pthread_rwlock_unlock(&data_blocks_lock);
+            
             return 0;
         }
     }
 
     // Unlock the data block table
-    pthread_rwlock_unlock(&data_blocks_lock);
+    
 
     return -1; // no space for entry
 }
@@ -476,7 +476,7 @@ int find_in_dir(inode_t *inode, char const *sub_name) {
     }
 
     // Lock the data block table
-    pthread_rwlock_rdlock(&data_blocks_lock);
+    
 
     // Locates the block containing the entries of the directory
     dir_entry_t *dir_entry = (dir_entry_t *)data_block_get(inode->i_data_block);
@@ -492,13 +492,13 @@ int find_in_dir(inode_t *inode, char const *sub_name) {
             int sub_inumber = dir_entry[i].d_inumber;
 
             // Unlock the data block table
-            pthread_rwlock_unlock(&data_blocks_lock);
+            
 
             return sub_inumber;
         }
 
     // Unlock the data block table
-    pthread_rwlock_unlock(&data_blocks_lock);
+    
 
     return -1; // entry not found
 }
@@ -514,7 +514,7 @@ int find_in_dir(inode_t *inode, char const *sub_name) {
 int data_block_alloc(void) {
 
     // Lock the data_block table
-    pthread_rwlock_wrlock(&data_blocks_lock);
+    
 
     for (size_t i = 0; i < DATA_BLOCKS; i++) {
         if (i * sizeof(allocation_state_t) % BLOCK_SIZE == 0) {
@@ -525,11 +525,11 @@ int data_block_alloc(void) {
             free_blocks[i] = TAKEN;
 
             // Unlock the data_block table
-            pthread_rwlock_unlock(&data_blocks_lock);
+            
             return (int)i;
         }
     }
-    pthread_rwlock_unlock(&data_blocks_lock);
+    
     return -1;
 }
 
@@ -542,7 +542,7 @@ int data_block_alloc(void) {
 void data_block_free(int block_number) {
 
     // Lock the data_block table
-    pthread_rwlock_wrlock(&data_blocks_lock);
+    
 
     ALWAYS_ASSERT(valid_block_number(block_number),
                   "data_block_free: invalid block number");
@@ -554,7 +554,7 @@ void data_block_free(int block_number) {
     free_blocks[block_number] = FREE;
 
     // Unlock the data_block table
-    pthread_rwlock_unlock(&data_blocks_lock);
+    
 }
 
 /**
