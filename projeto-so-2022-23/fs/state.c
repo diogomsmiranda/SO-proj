@@ -9,7 +9,7 @@
 #include <pthread.h>
 
 // Lock for the inode_table
-
+pthread_rwlock_t inode_table_lock;
 
 // Lock for the data blocks
 pthread_rwlock_t data_blocks_lock;
@@ -122,7 +122,7 @@ int state_init(tfs_params params) {
         malloc(MAX_OPEN_FILES * sizeof(allocation_state_t));
     
     //init the rwlock
-    
+    pthread_rwlock_init(&inode_table_lock, NULL);
     pthread_rwlock_init(&data_blocks_lock, NULL);
     pthread_rwlock_init(&file_table_lock, NULL);
 
@@ -161,7 +161,7 @@ int state_destroy(void) {
     free(free_open_file_entries);
 
     // Destroy the locks
-    
+    pthread_rwlock_destroy(&inode_table_lock);
     pthread_rwlock_destroy(&data_blocks_lock);
     pthread_rwlock_destroy(&file_table_lock);
 
@@ -187,7 +187,8 @@ int state_destroy(void) {
 static int inode_alloc(void) {
 
     // Lock the inode table
-    
+    printf("locking table\n");
+    pthread_rwlock_wrlock(&inode_table_lock);
 
     for (size_t inumber = 0; inumber < INODE_TABLE_SIZE; inumber++) {
         if ((inumber * sizeof(allocation_state_t) % BLOCK_SIZE) == 0) {
@@ -200,14 +201,16 @@ static int inode_alloc(void) {
             freeinode_ts[inumber] = TAKEN;
 
             // Unlock the inode table
-            
+            printf("unlocking table1\n");
+            pthread_rwlock_unlock(&inode_table_lock);
 
             return (int)inumber;
         }
     }
     // no free inodes
     // Unlock the inode table
-    
+    printf("unlocking table2\n");
+    pthread_rwlock_unlock(&inode_table_lock);
     return -1;
 }
 
@@ -240,10 +243,17 @@ int inode_create(inode_type i_type) {
 
     insert_delay(); // simulate storage access delay (to inode)
 
+    // Lock the inode table
+    printf("locking table\n");
+    pthread_rwlock_wrlock(&inode_table_lock);
+
+
     // Init the lock with the same index as the inode
     pthread_rwlock_init(&inode_locks[inumber], NULL);
     // lock
     pthread_rwlock_wrlock(&inode_locks[inumber]);
+
+    
 
     inode->i_node_type = i_type;
 
@@ -280,8 +290,6 @@ int inode_create(inode_type i_type) {
         }
     } break;
     case T_FILE:
-        // Lock the inode table
-        
 
         // In case of a new file, simply sets its size to 0
         inode_table[inumber].i_size = 0;
@@ -299,7 +307,8 @@ int inode_create(inode_type i_type) {
     }
 
     // Unlock
-    
+    printf("unlocking table3\n");
+    pthread_rwlock_unlock(&inode_table_lock);
     pthread_rwlock_unlock(&inode_locks[inumber]);
     pthread_rwlock_unlock(&data_blocks_lock);
 
@@ -320,7 +329,8 @@ void inode_delete(int inumber) {
     ALWAYS_ASSERT(valid_inumber(inumber), "inode_delete: invalid inumber");
 
     // Lock the inode table
-    
+    printf("locking table\n");
+    pthread_rwlock_wrlock(&inode_table_lock);
 
     ALWAYS_ASSERT(freeinode_ts[inumber] == TAKEN,
                   "inode_delete: inode already freed");
@@ -332,7 +342,8 @@ void inode_delete(int inumber) {
     freeinode_ts[inumber] = FREE;
 
     // Unlock the inode table
-    
+    printf("unlocking table4\n");
+    pthread_rwlock_unlock(&inode_table_lock);
 }
 
 /**
