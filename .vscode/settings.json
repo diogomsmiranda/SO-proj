@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "cstddef": "c",
-        "type_traits": "c",
-        "betterassert.h": "c"
-    }
-}
