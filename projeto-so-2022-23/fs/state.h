@@ -28,8 +28,6 @@ typedef struct {
 
     int i_links;
 
-    pthread_rwlock_t i_lock;
-
     size_t i_size;
     int i_data_block;
 
@@ -50,6 +48,8 @@ typedef struct {
 extern pthread_rwlock_t inode_table_lock;
 //extern the locker for the data_blocks
 extern pthread_rwlock_t data_blocks_lock;
+
+extern pthread_rwlock_t *inode_locks;
 
 int state_init(tfs_params);
 int state_destroy(void);

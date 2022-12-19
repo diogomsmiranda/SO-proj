@@ -17,6 +17,8 @@ pthread_rwlock_t data_blocks_lock;
 // Lock for the file table
 pthread_rwlock_t file_table_lock;
 
+pthread_rwlock_t *inode_locks;
+
 /*
  * Persistent FS state
  * (in reality, it should be maintained in secondary memory;
@@ -110,6 +112,7 @@ int state_init(tfs_params params) {
     }
 
     inode_table = malloc(INODE_TABLE_SIZE * sizeof(inode_t));
+    inode_locks = malloc(INODE_TABLE_SIZE * sizeof(pthread_rwlock_t));
     freeinode_ts = malloc(INODE_TABLE_SIZE * sizeof(allocation_state_t));
     fs_data = malloc(DATA_BLOCKS * BLOCK_SIZE);
     free_blocks = malloc(DATA_BLOCKS * sizeof(allocation_state_t));
@@ -149,6 +152,7 @@ int state_init(tfs_params params) {
  */
 int state_destroy(void) {
     free(inode_table);
+    free(inode_locks);
     free(freeinode_ts);
     free(fs_data);
     free(free_blocks);
@@ -235,8 +239,10 @@ int inode_create(inode_type i_type) {
 
     insert_delay(); // simulate storage access delay (to inode)
 
-    pthread_rwlock_init(&inode->i_lock, NULL);
-    pthread_rwlock_wrlock(&inode->i_lock);
+    // Init the lock with the same index as the inode
+    pthread_rwlock_init(&inode_locks[inumber], NULL);
+    // lock
+    pthread_rwlock_wrlock(&inode_locks[inumber]);
 
     inode->i_node_type = i_type;
 
@@ -251,7 +257,7 @@ int inode_create(inode_type i_type) {
             inode->i_data_block = -1;
             inode->i_links = 1;
 
-            pthread_rwlock_unlock(&inode->i_lock);
+            pthread_rwlock_unlock(&inode_locks[inumber]);
 
             // run regular deletion process
             inode_delete(inumber);
@@ -293,7 +299,7 @@ int inode_create(inode_type i_type) {
 
     // Unlock
     pthread_rwlock_unlock(&inode_table_lock);
-    pthread_rwlock_unlock(&inode->i_lock);
+    pthread_rwlock_unlock(&inode_locks[inumber]);
     pthread_rwlock_unlock(&data_blocks_lock);
 
     return inumber;
