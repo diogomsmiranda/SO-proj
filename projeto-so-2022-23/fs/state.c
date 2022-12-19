@@ -325,10 +325,7 @@ void inode_delete(int inumber) {
     insert_delay();
 
     ALWAYS_ASSERT(valid_inumber(inumber), "inode_delete: invalid inumber");
-
-    // Lock the inode table
-    pthread_rwlock_wrlock(&inode_table_lock);
-
+    
     ALWAYS_ASSERT(freeinode_ts[inumber] == TAKEN,
                   "inode_delete: inode already freed");
 
@@ -337,9 +334,6 @@ void inode_delete(int inumber) {
     }
 
     freeinode_ts[inumber] = FREE;
-
-    // Unlock the inode table
-    pthread_rwlock_unlock(&inode_table_lock);
 }
 
 /**
