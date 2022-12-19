@@ -187,7 +187,6 @@ int state_destroy(void) {
 static int inode_alloc(void) {
 
     // Lock the inode table
-    printf("locking table\n");
     pthread_rwlock_wrlock(&inode_table_lock);
 
     for (size_t inumber = 0; inumber < INODE_TABLE_SIZE; inumber++) {
@@ -201,7 +200,7 @@ static int inode_alloc(void) {
             freeinode_ts[inumber] = TAKEN;
 
             // Unlock the inode table
-            printf("unlocking table1\n");
+    
             pthread_rwlock_unlock(&inode_table_lock);
 
             return (int)inumber;
@@ -209,7 +208,6 @@ static int inode_alloc(void) {
     }
     // no free inodes
     // Unlock the inode table
-    printf("unlocking table2\n");
     pthread_rwlock_unlock(&inode_table_lock);
     return -1;
 }
@@ -244,7 +242,6 @@ int inode_create(inode_type i_type) {
     insert_delay(); // simulate storage access delay (to inode)
 
     // Lock the inode table
-    printf("locking table\n");
     pthread_rwlock_wrlock(&inode_table_lock);
 
 
@@ -279,7 +276,7 @@ int inode_create(inode_type i_type) {
         inode_table[inumber].i_data_block = b;
 
         // lock the data block table
-        printf("locking data blocks\n");
+
         pthread_rwlock_wrlock(&data_blocks_lock);
 
         dir_entry_t *dir_entry = (dir_entry_t *)data_block_get(b);
@@ -289,7 +286,7 @@ int inode_create(inode_type i_type) {
         for (size_t i = 0; i < MAX_DIR_ENTRIES; i++) {
             dir_entry[i].d_inumber = -1;
         }
-        printf("unlocking data blocks\n");
+
         pthread_rwlock_unlock(&data_blocks_lock);
     } break;
     case T_FILE:
@@ -310,7 +307,6 @@ int inode_create(inode_type i_type) {
     }
 
     // Unlock
-    printf("unlocking table3\n");
     pthread_rwlock_unlock(&inode_table_lock);
     pthread_rwlock_unlock(&inode_locks[inumber]);
 
@@ -331,7 +327,6 @@ void inode_delete(int inumber) {
     ALWAYS_ASSERT(valid_inumber(inumber), "inode_delete: invalid inumber");
 
     // Lock the inode table
-    printf("locking table\n");
     pthread_rwlock_wrlock(&inode_table_lock);
 
     ALWAYS_ASSERT(freeinode_ts[inumber] == TAKEN,
@@ -344,7 +339,6 @@ void inode_delete(int inumber) {
     freeinode_ts[inumber] = FREE;
 
     // Unlock the inode table
-    printf("unlocking table4\n");
     pthread_rwlock_unlock(&inode_table_lock);
 }
 
@@ -385,7 +379,6 @@ int clear_dir_entry(inode_t *inode, char const *sub_name) {
     }
 
     // Lock the data block table
-    printf("locking data blocks\n");
     pthread_rwlock_wrlock(&data_blocks_lock);
 
     // Locates the block containing the entries of the directory
@@ -401,14 +394,13 @@ int clear_dir_entry(inode_t *inode, char const *sub_name) {
             memset(dir_entry[i].d_name, 0, MAX_FILE_NAME);
 
             //unlock the data block table
-            printf("unlocking data blocks\n");
+    
             pthread_rwlock_unlock(&data_blocks_lock);
             return 0;
         }
     }
     
     //unlock the data block table
-    printf("unlocking data blocks\n");
     pthread_rwlock_unlock(&data_blocks_lock);
 
     return -1; // sub_name not found
@@ -442,7 +434,6 @@ int add_dir_entry(inode_t *inode, char const *sub_name, int sub_inumber) {
     }
 
     // Lock the data_block from write and read
-    printf("locking data blocks\n");
     pthread_rwlock_wrlock(&data_blocks_lock);
 
     // Locates the block containing the entries of the directory
@@ -458,14 +449,13 @@ int add_dir_entry(inode_t *inode, char const *sub_name, int sub_inumber) {
             dir_entry[i].d_name[MAX_FILE_NAME - 1] = '\0';
 
             // Unlock the data block table
-            printf("unlocking data blocks\n");
+    
             pthread_rwlock_unlock(&data_blocks_lock);
             return 0;
         }
     }
 
     // Unlock the data block table
-    printf("unlocking data blocks\n");
     pthread_rwlock_unlock(&data_blocks_lock);
 
     return -1; // no space for entry
@@ -496,7 +486,6 @@ int find_in_dir(inode_t *inode, char const *sub_name) {
     }
 
     // Lock the data block table
-    printf("locking data blocks read\n");
     pthread_rwlock_rdlock(&data_blocks_lock);
 
     // Locates the block containing the entries of the directory
@@ -513,14 +502,13 @@ int find_in_dir(inode_t *inode, char const *sub_name) {
             int sub_inumber = dir_entry[i].d_inumber;
 
             // Unlock the data block table
-            printf("unlocking data blocks\n");
+    
             pthread_rwlock_unlock(&data_blocks_lock);
 
             return sub_inumber;
         }
 
     // Unlock the data block table
-    printf("unlocking data blocks\n");
     pthread_rwlock_unlock(&data_blocks_lock);
 
     return -1; // entry not found
@@ -537,7 +525,6 @@ int find_in_dir(inode_t *inode, char const *sub_name) {
 int data_block_alloc(void) {
 
     // Lock the data_block table
-    printf("locking data blocks\n");
     pthread_rwlock_wrlock(&data_blocks_lock);
 
     for (size_t i = 0; i < DATA_BLOCKS; i++) {
@@ -549,12 +536,11 @@ int data_block_alloc(void) {
             free_blocks[i] = TAKEN;
 
             // Unlock the data_block table
-            printf("unlocking data blocks\n");
+    
             pthread_rwlock_unlock(&data_blocks_lock);
             return (int)i;
         }
     }
-    printf("unlocking data blocks\n");
     pthread_rwlock_unlock(&data_blocks_lock);
     return -1;
 }
@@ -568,7 +554,6 @@ int data_block_alloc(void) {
 void data_block_free(int block_number) {
 
     // Lock the data_block table
-    printf("locking data blocks\n");
     pthread_rwlock_wrlock(&data_blocks_lock);
 
     ALWAYS_ASSERT(valid_block_number(block_number),
@@ -581,7 +566,6 @@ void data_block_free(int block_number) {
     free_blocks[block_number] = FREE;
 
     // Unlock the data_block table
-    printf("unlocking data blocks\n");
     pthread_rwlock_unlock(&data_blocks_lock);
 }
 
