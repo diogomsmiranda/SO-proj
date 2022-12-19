@@ -289,6 +289,8 @@ int inode_create(inode_type i_type) {
         for (size_t i = 0; i < MAX_DIR_ENTRIES; i++) {
             dir_entry[i].d_inumber = -1;
         }
+        printf("unlocking data blocks\n");
+        pthread_rwlock_unlock(&data_blocks_lock);
     } break;
     case T_FILE:
 
@@ -311,8 +313,6 @@ int inode_create(inode_type i_type) {
     printf("unlocking table3\n");
     pthread_rwlock_unlock(&inode_table_lock);
     pthread_rwlock_unlock(&inode_locks[inumber]);
-    printf("unlocking data blocks\n");
-    pthread_rwlock_unlock(&data_blocks_lock);
 
     return inumber;
 }
