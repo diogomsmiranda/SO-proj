@@ -12,7 +12,6 @@ char const target_path0[] = "/f0";
 char const target_path1[] = "/f1";
 char const target_path2[] = "/f2";
 char const target_path3[] = "/f3";
-char const target_path4[] = "/f4";
 
 void assert_contents_ok(char const *path) {
     int f = tfs_open(path, 0);

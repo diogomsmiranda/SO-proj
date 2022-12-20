@@ -11,11 +11,8 @@
 uint8_t const file_contents[] = "AAA!";
 char const target_path1[] = "/f1";
 char const link_path1[] = "/l1";
-char const target_path2[] = "/f2";
 char const link_path2[] = "/l2";
-char const target_path3[] = "/f3";
 char const link_path3[] = "/l3";
-char const link_path4[] = "/l4";
 
 void assert_contents_ok(char const *path) {
     int f = tfs_open(path, 0);
