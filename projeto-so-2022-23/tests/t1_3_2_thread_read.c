@@ -85,7 +85,9 @@ int main() {
     pthread_t tid[3];
 
     assert(tfs_init(NULL) != -1);
-    tfs_open(target_path0, TFS_O_CREAT);
+    int fd = tfs_open(target_path0, TFS_O_CREAT);
+    assert( fd != -1);
+    assert(tfs_close(fd) != -1);
 
 
     if (pthread_create(&tid[0], NULL, thread1, NULL) != 0) {

@@ -39,5 +39,10 @@ Functions created to test added commands
    -> t1_3_3_thread_copy :
       Creates again 3 threads that will copy from external the same file 3 times.
       Then test that newly created file by linking and unlinking new files to it.
+
+t_file_is_open_error :
+   When a file is opened it can't be deleted.
+   A symlink can always be deleted.
+   An hardlink cant be deleted unless it has no other hardlinks of the same file (its the file it self).
       
 

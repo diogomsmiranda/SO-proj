@@ -667,3 +667,22 @@ open_file_entry_t *get_open_file_entry(int fhandle) {
 
     return &open_file_table[fhandle];
 }
+
+// Function that tells if a file is in the open file table
+int is_in_open_file_table(int inum) {
+
+    // Lock the file_table
+    pthread_rwlock_rdlock(&file_table_lock);
+
+    for (int i = 0; i < MAX_OPEN_FILES; i++) {
+        if (free_open_file_entries[i] == TAKEN &&
+            open_file_table[i].of_inumber == inum) {
+            pthread_rwlock_unlock(&file_table_lock);
+            return 0;
+        }
+    }
+
+    // unlock
+    pthread_rwlock_unlock(&file_table_lock);
+    return -1;
+}

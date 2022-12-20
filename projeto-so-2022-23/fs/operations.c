@@ -302,6 +302,11 @@ int tfs_unlink(char const *target) {
         case(T_FILE):
             // check if number of hardlinks reached 0
             if(inode_to_unlink->i_links<=1) {
+                if(is_in_open_file_table(inum) != -1) {
+                    pthread_rwlock_unlock(&inode_locks[inum]);
+                    //error in deleting the inode because the file is open
+                    return -1;
+                }
                 inode_delete(inum);
             }
             else {
