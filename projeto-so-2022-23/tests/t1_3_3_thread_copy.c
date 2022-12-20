@@ -49,13 +49,13 @@ void write_contents(char const *path) {
 void *thread1() {
     assert(tfs_copy_from_external_fs("tests/thread.txt", target_path0) != -1);
     assert(tfs_link(target_path0,target_path1) != -1);
-    sleep(1);
+    assert(tfs_unlink(target_path1) != -1);
+    sleep(1);   // force thread 2 & 3 to finish writing so it can check if content was read.
     assert_contents_ok(target_path4);
     return NULL;
 }
 
 void *thread2() {
-    assert(tfs_unlink(target_path1) != -1);
     assert(tfs_unlink(target_path1) == -1);
     assert(tfs_copy_from_external_fs("tests/nonexistent.txt", target_path2) == -1);
     assert(tfs_copy_from_external_fs("tests/thread.txt", target_path2) != -1);
@@ -76,18 +76,18 @@ int main() {
     assert(tfs_init(NULL) != -1);
 
     if (pthread_create(&tid[0], NULL, thread1, NULL) != 0) {
-        assert(1 == -1);
+        assert(1 == -1);    // error in creating thread. ABORT.
     }
     if (pthread_create(&tid[1], NULL, thread2, NULL) != 0) {
-        assert(1 == -1);
+        assert(1 == -1);    // error in creating thread. ABORT.
     }
     if (pthread_create(&tid[2], NULL, thread3, NULL) != 0) {
-        assert(1 == -1);
+        assert(1 == -1);    // error in creating thread. ABORT.
     }
     // join the threads
     for (int i = 0; i < 3; i++) {
         if (pthread_join(tid[i], NULL) != 0) {
-            assert(1 == -1);
+            assert(1 == -1);    // error in creating thread. ABORT.
         }
     }
 
