@@ -174,14 +174,10 @@ int tfs_link_counter(char const *name) {
 
     inode_t *inode = inode_get(inum);
 
-    // lock the inode
-    pthread_rwlock_rdlock(&inode_locks[inum]);
     ALWAYS_ASSERT(inode != NULL, "tfs_open: directory files must have an inode");
 
     int result = (inode->i_links);
 
-    //unlock the inode
-    pthread_rwlock_unlock(&inode_locks[inum]);
     return result;
 }
 
@@ -465,17 +461,4 @@ int tfs_copy_from_external_fs(char const *source_path, char const *dest_path) {
     tfs_close(dest);
 
     return 0;
-}
-
-
-//function just to test
-int counter(char const *name) {
-    // get the root inode
-    inode_t *root_dir_inode = inode_get(ROOT_DIR_INUM);
-    // get the inode of the file
-    int inum = tfs_lookup(name, root_dir_inode);
-    if(inum == -1) { return -1; }
-    // get the inode
-    inode_t *inode = inode_get(inum);
-    return inode->i_links;
 }
