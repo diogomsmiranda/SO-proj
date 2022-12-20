@@ -102,21 +102,21 @@ int main() {
     }
 
     if (pthread_create(&tid[0], NULL, thread1, NULL) != 0) {
-        assert(1 == -1);
+        assert(1 == -1); // error creating thread. ABORTS.
     }
     if (pthread_create(&tid[1], NULL, thread2, NULL) != 0) {
-        assert(1 == -1);
+        assert(1 == -1); // error creating thread. ABORTS.
     }
     if (pthread_create(&tid[2], NULL, thread3, NULL) != 0) {
-        assert(1 == -1);
+        assert(1 == -1); // error creating thread. ABORTS.
     }
     if(pthread_create(&tid[3], NULL, thread4, NULL) != 0) {
-        assert(1 == -1);
+        assert(1 == -1); // error creating threads. ABORTS.
     }
     // join the threads
     for (int i = 0; i < 4; i++) {
         if (pthread_join(tid[i], NULL) != 0) {
-            assert(1 == -1);
+            assert(1 == -1); // error joining threads. ABORTS.
         }
     }
 
