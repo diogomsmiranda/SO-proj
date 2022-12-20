@@ -7,7 +7,6 @@
 #include <string.h>
 #include <fcntl.h>
 #include <sys/types.h>
-
 #include "betterassert.h"
 
 tfs_params tfs_default_params() {
@@ -274,7 +273,7 @@ int tfs_link(char const *target, char const *link_name) {
     pthread_rwlock_unlock(&inode_locks[inum]);
     
     // already returns 0 if successfull, -1 otherwise
-    return add_dir_entry(root_dir_inode, link_name + 1, tfs_lookup(target, root_dir_inode));
+    return add_dir_entry(root_dir_inode, link_name + 1, inum);
 }
 
 // function that allows user to delete a file or a link
