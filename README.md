@@ -1,8 +1,8 @@
 # SO-proj
 
 Trabalho realizado pelos alunos:
-    -   David Pires, 103458
-    -   Diogo Miranda, 102536
+- David Pires, 103458
+- Diogo Miranda, 102536
 
 
 Functions tackled::
