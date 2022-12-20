@@ -47,18 +47,7 @@ void write_contents(char const *path) {
 }
 
 void *thread1() {
-    // Write to symlink and read original file
-    {
-        int f = tfs_open(target_path1, TFS_O_CREAT);
-        assert(f != -1);
-        assert(tfs_close(f) != -1);
-
-        assert_empty_file(target_path1); // sanity check
-    }
-
     assert(tfs_sym_link(target_path1, link_path1) != -1);
-
-
     assert_empty_file(link_path1);
 
     write_contents(link_path1);
@@ -68,36 +57,15 @@ void *thread1() {
 }
 
 void *thread2() {
-    // Write to original file and read through symlink
-    {
-        int f = tfs_open(target_path2, TFS_O_CREAT);
-        assert(f != -1);
-        assert(tfs_close(f) != -1);
-
-        write_contents(target_path2);
-
-        assert_contents_ok(target_path2); // sanity check
-    }
-
-    assert(tfs_sym_link(target_path2, link_path2) != -1);
+    assert(tfs_sym_link(target_path1, link_path2) != -1);
     assert_contents_ok(link_path2);
 
     return NULL;
 }
 
 void *thread3() {
-    // Write to original file and read through symlink
-    {
-        int f = tfs_open(target_path3, TFS_O_CREAT);
-        assert(f != -1);
-        assert(tfs_close(f) != -1);
 
-        write_contents(target_path3);
-
-        assert_contents_ok(target_path3); // sanity check
-    }
-
-    assert(tfs_sym_link(target_path3, link_path3) != -1);
+    assert(tfs_sym_link(target_path1, link_path3) != -1);
     assert_contents_ok(link_path3);
 
     return NULL;
@@ -107,6 +75,15 @@ int main() {
     pthread_t tid[3];
 
     assert(tfs_init(NULL) != -1);
+
+        // Write to symlink and read original file
+    {
+        int f = tfs_open(target_path1, TFS_O_CREAT);
+        assert(f != -1);
+        assert(tfs_close(f) != -1);
+
+        assert_empty_file(target_path1); // sanity check
+    }
 
     if (pthread_create(&tid[0], NULL, thread1, NULL) != 0) {
         assert(1 == -1);
