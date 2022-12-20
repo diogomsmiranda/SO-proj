@@ -254,7 +254,7 @@ int tfs_link(char const *target, char const *link_name) {
 
     // get the inode of the target
     int inum = tfs_lookup(target, root_dir_inode);
-    if (inum == -1) { return -1; }
+    if (inum == -1) {  return -1; }
     
 
     inode_t *inode = inode_get(inum);
@@ -288,7 +288,6 @@ int tfs_unlink(char const *target) {
     if (inum == -1) { return -1; }
     
     inode_t *inode_to_unlink = inode_get(inum);
-
     // Lock the inode
     pthread_rwlock_wrlock(&inode_locks[inum]);
     ALWAYS_ASSERT(inode_to_unlink != NULL, "tfs_unlink: directory files must have an inode");

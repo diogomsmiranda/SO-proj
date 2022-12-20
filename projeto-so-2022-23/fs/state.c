@@ -396,7 +396,6 @@ int clear_dir_entry(inode_t *inode, char const *sub_name) {
     
     //unlock the data block table
     pthread_rwlock_unlock(&data_blocks_lock);
-
     return -1; // sub_name not found
 }
 

@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
+#include <unistd.h>
 
 
 uint8_t const file_contents[] = "AAA!";
@@ -46,21 +47,26 @@ void write_contents(char const *path) {
 }
 
 void *thread1() {
-    assert(tfs_link(target_path0, target_path1) != -1);
-    write_contents(target_path1);
-
+    assert(tfs_copy_from_external_fs("tests/thread.txt", target_path0) != -1);
+    assert(tfs_link(target_path0,target_path1) != -1);
+    sleep(1);
+    assert_contents_ok(target_path4);
     return NULL;
 }
 
 void *thread2() {
-    assert(tfs_link(target_path0, target_path2) != -1);
-
+    assert(tfs_unlink(target_path1) != -1);
+    assert(tfs_unlink(target_path1) == -1);
+    assert(tfs_copy_from_external_fs("tests/nonexistent.txt", target_path2) == -1);
+    assert(tfs_copy_from_external_fs("tests/thread.txt", target_path2) != -1);
+    assert(tfs_sym_link(target_path2,target_path3) != -1);
     return NULL;
 }
 
 void *thread3() {
-    assert(tfs_link(target_path0, target_path3) != -1);
-
+    assert(tfs_copy_from_external_fs("tests/thread.txt", target_path4) != -1);
+    assert(tfs_link(target_path4,target_path1) != -1);
+    write_contents(target_path1);
     return NULL;
 }
 
@@ -68,8 +74,6 @@ int main() {
     pthread_t tid[3];
 
     assert(tfs_init(NULL) != -1);
-    int num = tfs_open(target_path0, TFS_O_CREAT);
-    tfs_close(num);
 
     if (pthread_create(&tid[0], NULL, thread1, NULL) != 0) {
         assert(1 == -1);
@@ -87,8 +91,8 @@ int main() {
         }
     }
 
-    assert_contents_ok(target_path0);
     assert(tfs_destroy() != -1);
+
     printf("Successful test.\n");
 
     return 0;

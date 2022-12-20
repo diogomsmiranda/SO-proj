@@ -56,7 +56,6 @@ void *thread1() {
     assert(tfs_unlink(link_path1) != -1);
     sleep(1);
     assert(tfs_link(target_path1, link_path1) == -1);
-
     return NULL;
 }
 

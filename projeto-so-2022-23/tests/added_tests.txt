@@ -26,4 +26,18 @@ Functions created to test added commands
        Verifies that it can edit the file from the new symbolic link.
 
 
-3. to be created.
+3. threads:
+   -> t1_3_1_thread_sym :
+      Create a first file.
+      Creates 4 threads and create symbolic links and hard links to those files.
+      Unlinking them aswell in the process.
+      All of this while pausing in key moments each thread so they can 
+      intercalate between each other.
+   -> t1_3_2_thread_read :
+      Creates 3 threads that will each create an hard link to that file.
+      After joining the threads the test asserts if the number of hardlinks is the correct.
+   -> t1_3_3_thread_copy :
+      Creates again 3 threads that will copy from external the same file 3 times.
+      Then test that newly created file by linking and unlinking new files to it.
+      
+
