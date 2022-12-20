@@ -45,7 +45,7 @@ typedef struct {
 } open_file_entry_t;
 
 // extern the locker for the inode_table
-extern pthread_rwlock_t inode_table_lock;
+extern pthread_mutex_t inode_table_lock;
 //extern the locker for the data_blocks
 extern pthread_rwlock_t data_blocks_lock;
 
