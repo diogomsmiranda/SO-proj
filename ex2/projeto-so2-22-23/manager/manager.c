@@ -18,12 +18,12 @@ static void print_usage() {
                     "   manager <register_pipe_name> list\n");
 }
 
-int connect(manager_t *manager, const char *register_name, const char *pipe_name);
-int create_box(manager_t *manager, const char *message_box, const char *pipe_name);
-int remove_box(manager_t *manager, const char *message_box, const char *pipe_name);
-int list_boxes(manager_t *manager, const char *pipe_name);
+int connect(manager_t *manager, char register_name[256], char pipe_name[256]);
+int create_box(manager_t *manager, char message_box[32], char pipe_name[256]);
+int remove_box(manager_t *manager, char message_box[32], char pipe_name[256]);
+int list_boxes(manager_t *manager, char pipe_name[256]);
 
-int connect(manager_t *manager, const char *register_name, const char *pipe_name) {
+int connect(manager_t *manager, char register_name[256], char pipe_name[256]) {
 
     manager->server_fd = open(register_name, O_WRONLY);
     if(manager->server_fd < 0) {
@@ -40,7 +40,7 @@ int connect(manager_t *manager, const char *register_name, const char *pipe_name
     return 0;
 }
 
-int create_box(manager_t *manager, const char *message_box, const char *pipe_name) {
+int create_box(manager_t *manager, char message_box[32], char pipe_name[256]) {
     char request[MAX_REQUEST_SIZE];
     build_request(3,pipe_name,message_box, request);
 
@@ -52,7 +52,7 @@ int create_box(manager_t *manager, const char *message_box, const char *pipe_nam
     return 0;
 }
 
-int remove_box(manager_t *manager, const char *message_box, const char *pipe_name) {
+int remove_box(manager_t *manager, char message_box[32], char pipe_name[256]) {
 
     char request[MAX_REQUEST_SIZE];
     build_request(5,pipe_name,message_box,request);
@@ -65,7 +65,7 @@ int remove_box(manager_t *manager, const char *message_box, const char *pipe_nam
     return 0;
 }
 
-int list_boxes(manager_t *manager,const char *pipe_name) {
+int list_boxes(manager_t *manager, char pipe_name[256]) {
 
     char request[MAX_REQUEST_SIZE];
     build_request(7, pipe_name, NULL, request);

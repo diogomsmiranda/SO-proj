@@ -11,15 +11,12 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#define MAX_MESSAGE_SIZE 1033
-#define MAX_BOX_NAME 32
-
 // Functions
-int connect(publisher_t *publisher, const char *register_name, const char *pipe_name, const char *message_box);
-int publish(publisher_t *publisher, const char *message);
+int connect(publisher_t *publisher, char register_name[256], char pipe_name[256], char message_box[32]);
+int publish(publisher_t *publisher, char message[1024]);
 int disconnect(publisher_t *publisher);
 
-int connect(publisher_t *publisher, const char *register_name, const char *pipe_name, const char *message_box) {
+int connect(publisher_t *publisher, char register_name[256], char pipe_name[256], char message_box[32]) {
     // Open the register pipe
     publisher->server_fd = open(register_name, O_WRONLY);
     if(publisher->server_fd < 0) {
@@ -46,7 +43,7 @@ int connect(publisher_t *publisher, const char *register_name, const char *pipe_
     return 0;
 }
 
-int publish(publisher_t *publisher, const char *message) {
+int publish(publisher_t *publisher, char message[1024]) {
     //create a message and send it to the pipe
     char buffer[MAX_MESSAGE_SIZE];
     build_message(9, message, buffer);

@@ -15,11 +15,11 @@
 #define MAX_BOX_NAME 32
 
 // Functions
-int connect(subscriber_t *subscriber, const char *register_name, const char *pipe_name, const char *message_box);
+int connect(subscriber_t *subscriber, char register_name[256], char pipe_name[256], char message_box[32]);
 int getMessages(subscriber_t *subscriber, char *buffer, size_t size);
 int disconnect(subscriber_t *subscriber);
 
-int connect(subscriber_t *subscriber, const char *register_name, const char *pipe_name, const char *message_box) {
+int connect(subscriber_t *subscriber, char register_name[256], char pipe_name[256], char message_box[32]) {
     subscriber->server_fd = open(register_name, O_WRONLY);
     if (subscriber->server_fd < 0) {
         WARN("Error opening register pipe");
