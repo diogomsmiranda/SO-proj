@@ -3,6 +3,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+
+
+#define MAX_REQUEST_SIZE 296
 
 typedef struct {
     uint8_t code;
@@ -10,10 +14,6 @@ typedef struct {
     char box_name[32];
 } request_t;
 
-typedef struct {
-    uint8_t code;
-    char content[1024];
-} message_t;
 
 // list the boxes answer
 // [ code = 8 (uint8_t) ] | [ last (uint8_t) ] |
@@ -50,6 +50,12 @@ typedef struct {
     char *message_box; //name of the message box
 } subscriber_t;
 
-request_t* set_request(int code, const char *message_box, const char *pipe_name);
-message_t* set_message(int code, const char *content);
+void build_request(uint8_t code, const char *message_box, const char *pipe_name, char *buffer);
+
+void build_answer_to_list(uint8_t code, uint8_t last, const char *box_name, uint64_t box_size, uint64_t n_pubs, uint64_t n_subs, char *buffer);
+
+void build_answer_to_box(uint8_t code, int32_t return_code, const char *error_message, char *buffer);
+
+void build_message(uint8_t code, const char *message, char *buffer);
+
 #endif

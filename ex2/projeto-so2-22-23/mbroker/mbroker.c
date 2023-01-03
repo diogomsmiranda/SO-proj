@@ -11,5 +11,8 @@
 
 //int main with args
 int main(int argc, char **argv) {
-
+    (void)argc;
+    (void)argv;
+    WARN("unimplemented"); // TODO: implement
+    return -1;
 }

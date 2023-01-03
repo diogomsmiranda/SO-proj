@@ -11,7 +11,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#define MAX_MESSAGE_SIZE 1024
+#define MAX_MESSAGE_SIZE 1033
 #define MAX_BOX_NAME 32
 
 // Functions
@@ -29,8 +29,10 @@ int connect(publisher_t *publisher, const char *register_name, const char *pipe_
     }
 
     strcpy(publisher->message_box,message_box);
-    
-    request_t *request = set_request(1, message_box, pipe_name);
+
+    char request[MAX_REQUEST_SIZE];
+    build_request(1, pipe_name, message_box, request);
+
     if(write(publisher->server_fd,request,sizeof(request)) < 0) {
         WARN("Error writing in the register pipe");
         return -1;
@@ -46,8 +48,9 @@ int connect(publisher_t *publisher, const char *register_name, const char *pipe_
 
 int publish(publisher_t *publisher, const char *message) {
     //create a message and send it to the pipe
-    message_t *msg = set_message(9, message);
-    if(write(publisher->pipe_fd,msg,sizeof(msg)) < 0) {
+    char buffer[MAX_MESSAGE_SIZE];
+    build_message(9, message, buffer);
+    if(write(publisher->pipe_fd,buffer,sizeof(buffer)) < 0) {
         WARN("Error writing in the pipe");
         return -1;
     }

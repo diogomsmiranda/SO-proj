@@ -28,7 +28,8 @@ int connect(subscriber_t *subscriber, const char *register_name, const char *pip
     }
 
     // Send a request to the regsiter pipe
-    request_t *request = set_request(2, message_box, pipe_name);
+    char request[MAX_REQUEST_SIZE];
+    build_request(2, pipe_name, message_box, request);
     if (write(subscriber->server_fd, request, sizeof(request)) < 0) {
         WARN("Error writing in the register pipe");
         return -1;
