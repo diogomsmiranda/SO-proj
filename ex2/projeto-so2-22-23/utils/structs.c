@@ -6,40 +6,31 @@
 #include <string.h>
 #include <unistd.h>
 
-//request_t* set_request(int code, char message_box[32], char pipe_name[256]) {
-//    request_t *request = NULL;
-//    request->code = (uint8_t)code;
-//    if (realpath(pipe_name, request->pipe_path) == NULL) { return NULL; }
-//    strcpy(request->box_name, message_box);
-//
-//    return request;
-//}
-//
-void build_message(uint8_t code, char message[1024], char* buffer) {
+void build_message(uint8_t code, char message[MAX_MESSAGE_SIZE], char* buffer) {
     // use memcpy to copy the paramaters to the buffer
     memcpy(buffer, &code, sizeof(int)); 
-    memcpy(buffer + sizeof(int), message, strlen(message));
+    memcpy(buffer + sizeof(int), message, MAX_MESSAGE_SIZE);
 
     return ;
 }
 
-void build_request(uint8_t code, char pipe_name[256], char message_box[32], char* buffer) {
+void build_request(uint8_t code, char pipe_name[MAX_PIPE_NAME], char message_box[MAX_BOX_NAME], char* buffer) {
     // use memcpy to copy the paramaters to the buffer
     memcpy(buffer, &code, sizeof(uint8_t));
-    memcpy(buffer + sizeof(uint8_t), pipe_name, strlen(pipe_name) + 1);
-    memcpy(buffer + sizeof(uint8_t) + strlen(pipe_name) + 1, message_box, strlen(message_box) + 1);
+    memcpy(buffer + sizeof(uint8_t), pipe_name, MAX_PIPE_NAME);
+    memcpy(buffer + sizeof(uint8_t) + MAX_PIPE_NAME, message_box, MAX_BOX_NAME);
 
     return;    
 }
 
-void build_answer_to_list(uint8_t code, uint8_t last, char box_name[32], uint64_t box_size, uint64_t n_pubs, uint64_t n_subs, char *buffer) {
+void build_answer_to_list(uint8_t code, uint8_t last, char box_name[MAX_BOX_NAME], uint64_t box_size, uint64_t n_pubs, uint64_t n_subs, char *buffer) {
     // use memcpy to copy the paramaters to the buffer
     memcpy(buffer, &code, sizeof(uint8_t));
     memcpy(buffer + sizeof(uint8_t), &last, sizeof(uint8_t));
-    memcpy(buffer + sizeof(uint8_t) + sizeof(uint8_t), box_name, strlen(box_name) + 1);
-    memcpy(buffer + sizeof(uint8_t) + sizeof(uint8_t) + strlen(box_name) + 1, &box_size, sizeof(uint64_t));
-    memcpy(buffer + sizeof(uint8_t) + sizeof(uint8_t) + strlen(box_name) + 1 + sizeof(uint64_t), &n_pubs, sizeof(uint64_t));
-    memcpy(buffer + sizeof(uint8_t) + sizeof(uint8_t) + strlen(box_name) + 1 + sizeof(uint64_t) + sizeof(uint64_t), &n_subs, sizeof(uint64_t));
+    memcpy(buffer + sizeof(uint8_t) + sizeof(uint8_t), box_name, MAX_BOX_NAME);
+    memcpy(buffer + sizeof(uint8_t) + sizeof(uint8_t) + MAX_BOX_NAME, &box_size, sizeof(uint64_t));
+    memcpy(buffer + sizeof(uint8_t) + sizeof(uint8_t) + MAX_BOX_NAME + sizeof(uint64_t), &n_pubs, sizeof(uint64_t));
+    memcpy(buffer + sizeof(uint8_t) + sizeof(uint8_t) + MAX_BOX_NAME + sizeof(uint64_t) + sizeof(uint64_t), &n_subs, sizeof(uint64_t));
 
     return;
 }
