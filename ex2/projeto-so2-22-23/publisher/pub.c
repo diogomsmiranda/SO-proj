@@ -12,11 +12,11 @@
 #include <errno.h>
 
 // Functions
-int connect(publisher_t *publisher, char register_name[256], char pipe_name[256], char message_box[32]);
-int publish(publisher_t *publisher, char message[1024]);
+int connect(publisher_t *publisher, char register_name[MAX_PIPE_NAME], char pipe_name[MAX_PIPE_NAME], char message_box[MAX_BOX_NAME]);
+int publish(publisher_t *publisher, char message[MAX_MESSAGE_SIZE]);
 int disconnect(publisher_t *publisher);
 
-int connect(publisher_t *publisher, char register_name[256], char pipe_name[256], char message_box[32]) {
+int connect(publisher_t *publisher, char register_name[MAX_PIPE_NAME], char pipe_name[MAX_PIPE_NAME], char message_box[MAX_BOX_NAME]) {
     // Open the register pipe
     publisher->server_fd = open(register_name, O_WRONLY);
     if(publisher->server_fd < 0) {
@@ -43,7 +43,7 @@ int connect(publisher_t *publisher, char register_name[256], char pipe_name[256]
     return 0;
 }
 
-int publish(publisher_t *publisher, char message[1024]) {
+int publish(publisher_t *publisher, char message[MAX_MESSAGE_SIZE]) {
     //create a message and send it to the pipe
     char buffer[MAX_MESSAGE_SIZE];
     build_message(9, message, buffer);

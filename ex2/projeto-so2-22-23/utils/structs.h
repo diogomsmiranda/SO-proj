@@ -9,6 +9,7 @@
 #define MAX_REQUEST_SIZE 296
 #define MAX_MESSAGE_SIZE 1024
 #define MAX_BOX_NAME 32
+#define MAX_PIPE_NAME 256
 
 typedef struct {
     int pipe_fd; //file descriptor for the name pipe

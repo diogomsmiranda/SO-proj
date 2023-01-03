@@ -11,15 +11,12 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#define MAX_MESSAGE_SIZE 1024
-#define MAX_BOX_NAME 32
-
 // Functions
-int connect(subscriber_t *subscriber, char register_name[256], char pipe_name[256], char message_box[32]);
+int connect(subscriber_t *subscriber, char register_name[MAX_PIPE_NAME], char pipe_name[MAX_PIPE_NAME], char message_box[MAX_BOX_NAME]);
 int getMessages(subscriber_t *subscriber, char *buffer, size_t size);
 int disconnect(subscriber_t *subscriber);
 
-int connect(subscriber_t *subscriber, char register_name[256], char pipe_name[256], char message_box[32]) {
+int connect(subscriber_t *subscriber, char register_name[MAX_PIPE_NAME], char pipe_name[MAX_PIPE_NAME], char message_box[MAX_BOX_NAME]) {
     subscriber->server_fd = open(register_name, O_WRONLY);
     if (subscriber->server_fd < 0) {
         WARN("Error opening register pipe");

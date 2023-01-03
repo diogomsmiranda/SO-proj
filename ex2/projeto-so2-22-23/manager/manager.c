@@ -18,12 +18,12 @@ static void print_usage() {
                     "   manager <register_pipe_name> list\n");
 }
 
-int connect(manager_t *manager, char register_name[256], char pipe_name[256]);
-int create_box(manager_t *manager, char message_box[32], char pipe_name[256]);
-int remove_box(manager_t *manager, char message_box[32], char pipe_name[256]);
-int list_boxes(manager_t *manager, char pipe_name[256]);
+int connect(manager_t *manager, char register_name[MAX_PIPE_NAME], char pipe_name[MAX_PIPE_NAME]);
+int create_box(manager_t *manager, char message_box[MAX_BOX_NAME], char pipe_name[MAX_PIPE_NAME]);
+int remove_box(manager_t *manager, char message_box[MAX_BOX_NAME], char pipe_name[MAX_PIPE_NAME]);
+int list_boxes(manager_t *manager, char pipe_name[MAX_PIPE_NAME]);
 
-int connect(manager_t *manager, char register_name[256], char pipe_name[256]) {
+int connect(manager_t *manager, char register_name[MAX_PIPE_NAME], char pipe_name[MAX_PIPE_NAME]) {
 
     manager->server_fd = open(register_name, O_WRONLY);
     if(manager->server_fd < 0) {
@@ -40,7 +40,7 @@ int connect(manager_t *manager, char register_name[256], char pipe_name[256]) {
     return 0;
 }
 
-int create_box(manager_t *manager, char message_box[32], char pipe_name[256]) {
+int create_box(manager_t *manager, char message_box[MAX_BOX_NAME], char pipe_name[MAX_PIPE_NAME]) {
     char request[MAX_REQUEST_SIZE];
     build_request(3,pipe_name,message_box, request);
 
@@ -52,7 +52,7 @@ int create_box(manager_t *manager, char message_box[32], char pipe_name[256]) {
     return 0;
 }
 
-int remove_box(manager_t *manager, char message_box[32], char pipe_name[256]) {
+int remove_box(manager_t *manager, char message_box[MAX_BOX_NAME], char pipe_name[MAX_PIPE_NAME]) {
 
     char request[MAX_REQUEST_SIZE];
     build_request(5,pipe_name,message_box,request);
@@ -65,7 +65,7 @@ int remove_box(manager_t *manager, char message_box[32], char pipe_name[256]) {
     return 0;
 }
 
-int list_boxes(manager_t *manager, char pipe_name[256]) {
+int list_boxes(manager_t *manager, char pipe_name[MAX_PIPE_NAME]) {
 
     char request[MAX_REQUEST_SIZE];
     build_request(7, pipe_name, NULL, request);
