@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <pthread.h>
 
 /**
  * Directory entry
@@ -17,13 +18,15 @@ typedef struct {
     int d_inumber;
 } dir_entry_t;
 
-typedef enum { T_FILE, T_DIRECTORY } inode_type;
+typedef enum { T_FILE, T_DIRECTORY, T_SYMLINK } inode_type;
 
 /**
  * Inode
  */
 typedef struct {
     inode_type i_node_type;
+
+    int i_links;
 
     size_t i_size;
     int i_data_block;
@@ -41,6 +44,13 @@ typedef struct {
     size_t of_offset;
 } open_file_entry_t;
 
+// extern the locker for the inode_table
+extern pthread_mutex_t inode_table_lock;
+//extern the locker for the data_blocks
+extern pthread_rwlock_t data_blocks_lock;
+
+extern pthread_rwlock_t *inode_locks;
+
 int state_init(tfs_params);
 int state_destroy(void);
 
@@ -52,7 +62,7 @@ inode_t *inode_get(int inumber);
 
 int clear_dir_entry(inode_t *inode, char const *sub_name);
 int add_dir_entry(inode_t *inode, char const *sub_name, int sub_inumber);
-int find_in_dir(inode_t const *inode, char const *sub_name);
+int find_in_dir(inode_t *inode, char const *sub_name);
 
 int data_block_alloc(void);
 void data_block_free(int block_number);
@@ -61,5 +71,6 @@ void *data_block_get(int block_number);
 int add_to_open_file_table(int inumber, size_t offset);
 void remove_from_open_file_table(int fhandle);
 open_file_entry_t *get_open_file_entry(int fhandle);
+int is_in_open_file_table(int inumber);
 
 #endif // STATE_H

@@ -43,3 +43,15 @@ void build_answer_to_box(uint8_t code, int32_t return_code, const char *error_me
 
     return;
 }
+
+void INT_handler(int signum) {
+
+    //so it doesnt go unused
+    if(!signum) {
+        return;
+    }
+
+    unlink(global_pipe_name);
+    
+    exit(0);
+}

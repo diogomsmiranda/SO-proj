@@ -29,6 +29,11 @@ typedef struct {
     char message_box[MAX_BOX_NAME]; //name of the message box
 } subscriber_t;
 
+char global_pipe_name[MAX_PIPE_NAME];
+
+
+void INT_handler(int signum);
+
 void build_request(uint8_t code, char pipe_name[MAX_PIPE_NAME], char message_box[MAX_BOX_NAME], char *buffer);
 
 void build_answer_to_list(uint8_t code, uint8_t last, char box_name[MAX_BOX_NAME], uint64_t box_size, uint64_t n_pubs, uint64_t n_subs, char *buffer);

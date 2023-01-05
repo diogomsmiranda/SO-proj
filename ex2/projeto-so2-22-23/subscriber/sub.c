@@ -76,6 +76,8 @@ int getMessages(subscriber_t *subscriber, char buffer[], size_t size) {
 
 int main(int argc, char **argv) {
 
+    signal(SIGINT, INT_handler);
+
     if (argc != 4) {
         WARN("Invalid number of arguments");
         return -1;
@@ -91,6 +93,7 @@ int main(int argc, char **argv) {
     char message_box[MAX_BOX_NAME];
     strcpy(register_name, argv[1]);
     strcpy(pipe_name, argv[2]);
+    strcpy(global_pipe_name, argv[2]);
     strcpy(message_box, argv[3]);
 
 
