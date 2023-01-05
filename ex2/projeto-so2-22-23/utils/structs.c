@@ -8,8 +8,8 @@
 
 void build_message(uint8_t code, char message[MAX_MESSAGE_SIZE], char* buffer) {
     // use memcpy to copy the paramaters to the buffer
-    memcpy(buffer, &code, sizeof(int)); 
-    memcpy(buffer + sizeof(int), message, MAX_MESSAGE_SIZE);
+    memcpy(buffer, &code, sizeof(u_int8_t)); 
+    memcpy(buffer + sizeof(u_int8_t), message, MAX_MESSAGE_SIZE);
 
     return ;
 }
