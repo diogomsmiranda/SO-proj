@@ -1,6 +1,7 @@
 #include "logging.h"
 #include "structs.h"
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,6 +36,12 @@ int connect(publisher_t *publisher, char register_name[MAX_PIPE_NAME], char pipe
         return -1;
     }
 
+    //make the fifo
+    if(mkfifo(pipe_name, 0666) < 0) {
+        WARN("Error creating the fifo");
+        return -1;
+    }
+
     publisher->pipe_fd = open(pipe_name, O_WRONLY);
     if(publisher->pipe_fd < 0) {
         return -1;
@@ -55,13 +62,51 @@ int publish(publisher_t *publisher, char message[MAX_MESSAGE_SIZE]) {
     return 0;
 }
 
+int wait_message(char message[MAX_MESSAGE_SIZE]) {
+    //wait for a message from the user
+    fgets(message, MAX_MESSAGE_SIZE, stdin);
+    // limitate the message with a \0
+    message[strlen(message)-1] = '\0';
+
+    return 0;
+}
+
 int disconnect(publisher_t *publisher) { return close(publisher->pipe_fd); }
 
 
 int main(int argc, char **argv) {
-    (void)argc;
-    (void)argv;
-    fprintf(stderr, "usage: pub <register_pipe_name> <box_name>\n");
-    WARN("unimplemented"); // TODO: implement
+
+    publisher_t publisher;
+
+    //get the arguments from the command
+
+    char register_name[MAX_PIPE_NAME];
+    char pipe_name[MAX_PIPE_NAME];
+    char message_box[MAX_BOX_NAME];
+
+    strcpy(register_name, argv[1]);
+    strcpy(pipe_name, argv[2]);
+    strcpy(message_box, argv[3]);
+
+    if(connect(&publisher, register_name, pipe_name, message_box) < 0) {
+        WARN("Error connecting to the server");
+        return -1;
+    }
+
+    char message[MAX_MESSAGE_SIZE];
+
+    while(true) {
+        wait_message(message);
+
+        if(publish(&publisher, message) < 0) {
+            WARN("Error publishing the message");
+            break;
+        }
+
+        // clear message
+        memset(message, 0, MAX_MESSAGE_SIZE);
+    }
+    
+
     return -1;
 }
