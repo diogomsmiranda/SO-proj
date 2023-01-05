@@ -75,6 +75,12 @@ int getMessages(subscriber_t *subscriber, char buffer[], size_t size) {
 }
 
 int main(int argc, char **argv) {
+
+    if (argc != 4) {
+        WARN("Invalid number of arguments");
+        return -1;
+    }
+
     // Creete the subscriber
     subscriber_t subscriber;
     

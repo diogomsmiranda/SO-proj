@@ -91,6 +91,12 @@ int main(int argc, char **argv) {
     //  manager <register_pipe_name> <pipe_name> remove <box_name>
     //  manager <register_pipe_name> <pipe_name> list
 
+    // check arguments
+    if(argc != 5 && argc != 4) {
+        print_usage();
+        return -1;
+    }
+
     // save arguments
     char register_name[MAX_PIPE_NAME];
     char pipe_name[MAX_PIPE_NAME];

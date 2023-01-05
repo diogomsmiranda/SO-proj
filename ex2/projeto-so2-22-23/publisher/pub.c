@@ -76,6 +76,12 @@ int disconnect(publisher_t *publisher) { return close(publisher->pipe_fd); }
 
 int main(int argc, char **argv) {
 
+    // check the number of arguments
+    if(argc != 4) {
+        WARN("Wrong number of arguments");
+        exit(1);
+    }
+
     publisher_t publisher;
 
     //get the arguments from the command
