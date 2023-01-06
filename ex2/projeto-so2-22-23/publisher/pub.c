@@ -68,7 +68,6 @@ int publish(publisher_t *publisher, char message[MAX_MESSAGE_SIZE]) {
 
 int wait_message(char message[MAX_MESSAGE_SIZE]) {
     //wait for a message from the user
-    printf("|\n");
     fgets(message, MAX_MESSAGE_SIZE, stdin);
     // limitate the message with a \0
     message[strlen(message)-1] = '\0';
@@ -81,7 +80,6 @@ int disconnect(publisher_t *publisher) { return close(publisher->pipe_fd); }
 
 int main(int argc, char **argv) {
 
-    printf(".\n");
 
     signal(SIGINT, INT_handler);
 
@@ -104,14 +102,10 @@ int main(int argc, char **argv) {
     strcpy(global_pipe_name, argv[2]);
     strcpy(message_box, argv[3]);
 
-    printf(".\n");
-
     if(connect(&publisher, register_name, pipe_name, message_box) < 0) {
         printf("Error connecting to the server\n");
         return -1;
     }
-
-    printf(".\n");
 
     char message[MAX_MESSAGE_SIZE];
 

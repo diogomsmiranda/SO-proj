@@ -87,7 +87,7 @@ void pub_req_handle(char request[MAX_REQUEST_SIZE]) {
     }
 
     //open the pipe
-    int pipe_fd = open(pipe_name, O_WRONLY);
+    int pipe_fd = open(pipe_name, O_RDONLY);
     if(pipe_fd < 0) {
         printf("Error opening named pipe for writing\n");
         exit(1);
@@ -145,7 +145,9 @@ void treat_request(char request[MAX_REQUEST_SIZE]) {
         case 9:
             //message from publisher to publish
             break;
-    
+        default:
+            printf("Invalid request code\n");
+            exit(1);
     }   
 }
 
