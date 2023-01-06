@@ -33,20 +33,14 @@ int connect(publisher_t *publisher, char register_name[MAX_PIPE_NAME], char pipe
     char request[MAX_REQUEST_SIZE];
     build_request(1, pipe_name, message_box, request);
 
-    if(write(publisher->server_fd,request,sizeof(request)) < 0) {
-        printf("Error writing in the register pipe\n");
-        return -1;
-    }
-
     //make the fifo
     if(mkfifo(pipe_name, 0666) < 0) {
         printf("Error creating the fifo\n");
         return -1;
     }
 
-    publisher->pipe_fd = open(pipe_name, O_WRONLY);
-    if(publisher->pipe_fd < 0) {
-        printf("Error opening named pipe for writing\n");
+    if(write(publisher->server_fd,request,sizeof(request)) < 0) {
+        printf("Error writing in the register pipe\n");
         return -1;
     }
 
@@ -56,9 +50,10 @@ int connect(publisher_t *publisher, char register_name[MAX_PIPE_NAME], char pipe
 
 int publish(publisher_t *publisher, char message[MAX_MESSAGE_SIZE]) {
     //create a message and send it to the pipe
-    char buffer[MAX_MESSAGE_SIZE];
+    char buffer[MAX_BUFFER_MESSAGE];
     build_message(9, message, buffer);
-    if(write(publisher->pipe_fd,buffer,sizeof(buffer)) < 0) {
+    //MUDAR PARA PIPE_FD
+    if(write(publisher->server_fd,buffer,sizeof(buffer)) < 0) {
         printf("Error writing in the pipe\n");
         return -1;
     }
@@ -67,10 +62,9 @@ int publish(publisher_t *publisher, char message[MAX_MESSAGE_SIZE]) {
 }
 
 int wait_message(char message[MAX_MESSAGE_SIZE]) {
+
     //wait for a message from the user
     fgets(message, MAX_MESSAGE_SIZE, stdin);
-    // limitate the message with a \0
-    message[strlen(message)-1] = '\0';
 
     return 0;
 }
@@ -109,6 +103,12 @@ int main(int argc, char **argv) {
 
     char message[MAX_MESSAGE_SIZE];
 
+    publisher.pipe_fd = open(pipe_name, O_WRONLY);
+    if(publisher.pipe_fd < 0) {
+        printf("Error opening the pipe for writing\n");
+        return -1;
+    }
+
     while(true) {
 
         wait_message(message);
@@ -118,6 +118,7 @@ int main(int argc, char **argv) {
             printf("Error publishing the message\n");
             break;
         }
+
 
         // clear message
         memset(message, 0, MAX_MESSAGE_SIZE);

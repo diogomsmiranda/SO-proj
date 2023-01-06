@@ -18,28 +18,26 @@ static void print_usage() {
                     "   manager <register_pipe_name> list\n");
 }
 
-int connect(manager_t *manager, char register_name[MAX_PIPE_NAME], char pipe_name[MAX_PIPE_NAME]);
+int connect(manager_t *manager, char register_name[MAX_PIPE_NAME]);
 int create_box(manager_t *manager, char message_box[MAX_BOX_NAME], char pipe_name[MAX_PIPE_NAME]);
 int remove_box(manager_t *manager, char message_box[MAX_BOX_NAME], char pipe_name[MAX_PIPE_NAME]);
 int list_boxes(manager_t *manager, char pipe_name[MAX_PIPE_NAME]);
 
-int connect(manager_t *manager, char register_name[MAX_PIPE_NAME], char pipe_name[MAX_PIPE_NAME]) {
+int connect(manager_t *manager, char register_name[MAX_PIPE_NAME]) {
 
     manager->server_fd = open(register_name, O_WRONLY);
     if(manager->server_fd < 0) {
-        WARN("Error opening register pipe for writing");
+        printf("Error opening register pipe for writing\n");
         return -1;
     }
 
+    return 0;
+}
+
+int make_pipe(char pipe_name[MAX_PIPE_NAME]) {
     //make the fifo
     if(mkfifo(pipe_name, 0666) < 0) {
-        WARN("Error creating the fifo");
-        return -1;
-    }
-
-    manager->pipe_fd = open(pipe_name, O_RDONLY);
-    if(manager->pipe_fd < 0) {
-        WARN("Error opening named pipe for reading");
+        printf("Error creating the fifo\n");
         return -1;
     }
 
@@ -50,8 +48,17 @@ int create_box(manager_t *manager, char message_box[MAX_BOX_NAME], char pipe_nam
     char request[MAX_REQUEST_SIZE];
     build_request(3,pipe_name,message_box, request);
 
-    if(write(manager->pipe_fd,request,sizeof(request)) < 0) {
-        WARN("Error writing in the named pipe");
+
+    make_pipe(pipe_name);
+
+    if(write(manager->server_fd,request,sizeof(request)) < 0) {
+        printf("Error writing in the named pipe\n");
+        return -1;
+    }
+
+    manager->pipe_fd = open(pipe_name, O_RDONLY);
+    if(manager->pipe_fd < 0) {
+        printf("Error opening named pipe for reading\n");
         return -1;
     }
 
@@ -63,8 +70,10 @@ int remove_box(manager_t *manager, char message_box[MAX_BOX_NAME], char pipe_nam
     char request[MAX_REQUEST_SIZE];
     build_request(5,pipe_name,message_box,request);
 
+    make_pipe(pipe_name);
+    
     if(write(manager->pipe_fd,request,sizeof(request)) < 0) {
-        WARN("Error writing in the named pipe");
+        printf("Error writing in the named pipe\n");
         return -1;
     }
 
@@ -77,9 +86,11 @@ int list_boxes(manager_t *manager, char pipe_name[MAX_PIPE_NAME]) {
     build_request(7, pipe_name, NULL, request);
 
     if(write(manager->pipe_fd,request,sizeof(request)) < 0) {
-        WARN("Error writing in the named pipe");
+        printf("Error writing in the named pipe\n");
         return -1;
     }
+
+    make_pipe(pipe_name);
 
     return 0;
 }
@@ -110,8 +121,8 @@ int main(int argc, char **argv) {
     manager_t manager;
 
     // connect to server
-    if(connect(&manager, register_name, pipe_name) < 0) {
-        WARN("Error connecting to server");
+    if(connect(&manager, register_name) < 0) {
+        printf("Error connecting to server\n");
         return -1;
     }
 
@@ -119,18 +130,18 @@ int main(int argc, char **argv) {
     if(strcmp(argv[3], "create") == 0) {
         strncpy(message_box, argv[4], MAX_BOX_NAME);
         if(create_box(&manager, message_box, pipe_name) < 0) {
-            WARN("Error creating message box");
+            printf("Error creating message box\n");
             return -1;
         }
     } else if(strcmp(argv[3], "remove") == 0) {
         strncpy(message_box, argv[4], MAX_BOX_NAME);
         if(remove_box(&manager, message_box, pipe_name) < 0) {
-            WARN("Error removing message box");
+            printf("Error removing message box\n");
             return -1;
         }
     } else if(strcmp(argv[3], "list") == 0) {
         if(list_boxes(&manager, pipe_name) < 0) {
-            WARN("Error listing message boxes");
+            printf("Error listing message boxes\n");
             return -1;
         }
     } else {

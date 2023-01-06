@@ -25,17 +25,17 @@ int connect(subscriber_t *subscriber, char register_name[MAX_PIPE_NAME], char pi
         return -1;
     }
 
+    // Create the named pipe
+    if (mkfifo(pipe_name, 0666) < 0) {
+        WARN("Error creating named pipe");
+        return -1;
+    }
+
     // Send a request to the regsiter pipe
     char request[MAX_REQUEST_SIZE];
     build_request(2, pipe_name, message_box, request);
     if (write(subscriber->server_fd, request, sizeof(request)) < 0) {
         WARN("Error writing in the register pipe");
-        return -1;
-    }
-
-    // Create the named pipe
-    if (mkfifo(pipe_name, 0666) < 0) {
-        WARN("Error creating named pipe");
         return -1;
     }
 
@@ -105,7 +105,7 @@ int main(int argc, char **argv) {
 
     char buffer[MAX_BUFFER_MESSAGE];
     while (true) {
-        if (getMessages(&subscriber, buffer, sizeof(buffer)) < 0) {
+        if (getMessages(&subscriber, buffer, MAX_BUFFER_MESSAGE) < 0) {
             WARN("Error getting messages");
             break;
         }
@@ -114,7 +114,7 @@ int main(int argc, char **argv) {
         memcpy(message,buffer+sizeof(uint8_t),MAX_MESSAGE_SIZE);
 
         //print the message
-        printf("%s\n", message);
+        printf("%s", message);
         
         // clear the buffer
         memset(buffer, 0, sizeof(buffer));
